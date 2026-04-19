@@ -593,7 +593,7 @@ Antworte NUR mit einem JSON-Array. Kein Text davor oder danach. Format:
 Beispiele für gute Vorschläge:
 - anker: "Bewusster Stabilitätsanker — Reduktionsempfehlungen ignorieren"
 - risiko: "Klumpenrisiko bekannt — Abbau bei nächster Stärke geplant"  
-- steuer: "Verlustposition zur steuerlichen Verrechnung halten"
+- steuer: "Verlustposition — nur gleichzeitig verkaufen wenn sowieso Gewinne realisiert werden"
 - strategie: "Langfristige Kernposition — kein Rebalancing gewünscht"
 
 Maximal 8 Einträge. Nur die wichtigsten Positionen.`;
@@ -667,22 +667,33 @@ function renderContextFields(suggestions) {
   </div>`;
 
   window.toggleContext = function(i) {
-    const inp = document.getElementById('ctx-' + i);
-    if (inp) state.contextValues[i] = inp.value;
+    // 1. Alle aktuellen Input-Werte sichern bevor irgendwas geändert wird
+    state.contextSuggestions.forEach((_, j) => {
+      const el = document.getElementById('ctx-' + j);
+      if (el && !el.disabled) state.contextValues[j] = el.value;
+    });
 
+    // 2. Status umschalten
     state.contextActive[i] = !state.contextActive[i];
     const active = state.contextActive[i];
 
-    document.getElementById('ctx-row-' + i).style.opacity = active ? '1' : '0.35';
+    // 3. Nur diese Zeile im DOM anpassen
+    const row = document.getElementById('ctx-row-' + i);
     const btn = document.getElementById('ctx-btn-' + i);
-    btn.style.borderColor = active ? 'var(--red)'  : 'var(--green)';
-    btn.style.color       = active ? 'var(--red)'  : 'var(--green)';
+    const inp = document.getElementById('ctx-' + i);
+    const lbl = document.getElementById('ctx-off-' + i);
+
+    row.style.opacity     = active ? '1' : '0.35';
+    btn.style.borderColor = active ? 'var(--red)'          : 'var(--green)';
+    btn.style.color       = active ? 'var(--red)'          : 'var(--green)';
     btn.title             = active ? 'Aus Kontext entfernen' : 'In Kontext aufnehmen';
     btn.textContent       = active ? '✕' : '+';
     inp.disabled          = !active;
     inp.style.borderColor = active ? 'var(--border-bright)' : 'var(--border)';
-    inp.style.color       = active ? 'var(--text)' : 'var(--text-dim)';
-    document.getElementById('ctx-off-' + i).style.display = active ? 'none' : 'inline';
+    inp.style.color       = active ? 'var(--text)'         : 'var(--text-dim)';
+    // 4. Gespeicherten Wert wiederherstellen (wichtig beim Re-Aktivieren)
+    inp.value             = state.contextValues[i] || '';
+    lbl.style.display     = active ? 'none' : 'inline';
   };
 }
 
@@ -1018,6 +1029,7 @@ Analysiere das USD/USA-Exposure kritisch im Kontext von Dalios "Big Cycle":
 Tabellarisch: Asset-Klasse | IST% | SOLL% | Differenz | Handlungsbedarf
 - Konkrete Kauf-/Verkaufsempfehlungen mit Beträgen
 - Steuerliche Überlegungen NUR hier (nicht in anderen Abschnitten wiederholen)
+- WICHTIG zur Verlustverrechnung: Verluste NIEMALS als eigenständige Verkaufsempfehlung nennen. Verlustverrechnung nur als Begleithinweis wenn eine Position aus anderen Gründen (Strategie, Rebalancing) sowieso verkauft wird. Formulierung immer: "Falls du X sowieso verkaufst, dann Y gleichzeitig zur Verlustverrechnung nutzen." Nie: "Verkaufe Y zur Verlustverrechnung."
 
 ## 4. DIESEN MONAT INVESTIEREN — ${budget} EUR
 - Konkrete Empfehlung wo die ${budget} EUR einsetzen
@@ -1034,6 +1046,7 @@ WICHTIG: Für JEDE Position >3% des Portfolios GENAU EINE klare Aktion angeben.
 Tabelle: | Position | Aktuell % | Aktion | Begründung | Priorität |
 Aktionen NUR: HALTEN · KAUFEN · AUFSTOCKEN · REDUZIEREN · VERKAUFEN
 Keine Doppeldeutigkeiten — eine Position, eine Aktion.
+NIEMALS "Verlustverrechnung" als eigenständige Aktion in der Tabelle. Verluste nur als Begleithinweis in der Begründungsspalte erwähnen, wenn die Position aus strategischen Gründen sowieso verkauft wird.
 
 Antworte direkt und konkret. Keine allgemeinen Aussagen. Kennzeichne am Ende: KI-Entscheidungshilfe, keine Anlageberatung.`;
 
