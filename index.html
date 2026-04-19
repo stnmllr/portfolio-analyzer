@@ -183,6 +183,7 @@ tr:last-child td { border-bottom: none; }
   <div class="step-dot active" id="dot-1">01 · Setup</div>
   <div class="step-dot" id="dot-2">02 · CSV Upload</div>
   <div class="step-dot" id="dot-3">03 · Mapping &amp; Prüfung</div>
+  <div class="step-dot" id="dot-3b">03b · Kontext-Check</div>
   <div class="step-dot" id="dot-4">04 · Report</div>
 </div>
 
@@ -317,7 +318,35 @@ tr:last-child td { border-bottom: none; }
 
   <div class="btn-row">
     <button class="btn btn-secondary" onclick="goToStep(2)">← Zurück</button>
-    <button class="btn btn-primary" id="btn-confirm" style="flex:1" onclick="runAnalysis()" disabled>→ MAPPING BESTÄTIGEN &amp; ANALYSE STARTEN</button>
+    <button class="btn btn-primary" id="btn-confirm" style="flex:1" onclick="goToContextCheck()" disabled>→ WEITER: KONTEXT-CHECK</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ STEP 3b: Kontext-Check -->
+<div class="step" id="step-3b">
+  <div class="panel">
+    <div class="panel-header"><span class="panel-num">01</span><span class="panel-title">KI-Vorschläge — Bitte prüfen und anpassen</span></div>
+    <div class="panel-body">
+      <div class="info-box" id="context-info">
+        Claude analysiert deine Top-Positionen und schlägt Kontext-Anmerkungen vor.<br>
+        Korrigiere, ergänze oder lösche — dieser Kontext fließt in die vollständige Analyse ein.
+      </div>
+      <div id="context-loading" style="display:none;">
+        <div class="status-bar visible" style="margin-bottom:0;">
+          <div class="spinner"></div>
+          <span>Claude analysiert Portfolio-Struktur...</span>
+        </div>
+      </div>
+      <div id="context-fields"></div>
+      <div class="field" style="margin-top:1rem;">
+        <label>Weitere Anmerkungen (optional)</label>
+        <textarea id="context-extra" rows="3" style="width:100%;background:var(--bg);border:1px solid var(--border-bright);color:var(--text);padding:8px 12px;border-radius:3px;font-family:var(--mono);font-size:12px;resize:vertical;outline:none;" placeholder="z.B. Ich plane in 2 Jahren in Rente zu gehen · Ich möchte keine weiteren Einzelaktien · Gold ist mir wichtig als Absicherung"></textarea>
+      </div>
+    </div>
+  </div>
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="goToStep(3)">← Zurück</button>
+    <button class="btn btn-primary" style="flex:1" onclick="runAnalysis()">→ ANALYSE STARTEN</button>
   </div>
 </div>
 
@@ -351,9 +380,10 @@ tr:last-child td { border-bottom: none; }
 // STATE
 // ═══════════════════════════════════════════════════════════
 const state = {
-  files: [],        // [{name, raw, rows, headers, sep}]
-  mapping: {},      // {bezeichnung, typ, stueck, kurs, wert, kaufkurs, isin, wkn, depot}
-  normalized: [],   // final position objects
+  files: [],              // [{name, raw, rows, headers, sep}]
+  mapping: {},            // {bezeichnung, typ, stueck, kurs, wert, kaufkurs, isin, wkn, depot}
+  normalized: [],         // final position objects
+  contextSuggestions: [], // KI-Vorschläge für Schritt 3b
   currentStep: 1
 };
 
@@ -374,10 +404,13 @@ const FIELDS = [
 function goToStep(n) {
   document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
   document.getElementById('step-' + n).classList.add('active');
+  // Step order: 1, 2, 3, 3b, 4
+  const stepOrder = [1, 2, 3, '3b', 4];
+  const currentIdx = stepOrder.indexOf(n);
   document.querySelectorAll('.step-dot').forEach((d, i) => {
     d.classList.remove('active', 'done');
-    if (i + 1 < n) d.classList.add('done');
-    if (i + 1 === n) d.classList.add('active');
+    if (i < currentIdx) d.classList.add('done');
+    if (i === currentIdx) d.classList.add('active');
   });
   state.currentStep = n;
   hideError();
@@ -525,6 +558,114 @@ function autoMap(headers) {
     }
   }
   return mapping;
+}
+
+async function goToContextCheck() {
+  goToStep('3b');
+  document.getElementById('context-loading').style.display = 'block';
+  document.getElementById('context-fields').innerHTML = '';
+
+  const positions = state.normalized;
+  const total = positions.reduce((s, p) => s + p.wert, 0);
+  const top = [...positions].sort((a,b) => b.wert - a.wert).slice(0, 12);
+
+  let posText = top.map(p => {
+    const pct = ((p.wert/total)*100).toFixed(1);
+    const perf = p.kaufkurs && p.kurs && p.kaufkurs > 0
+      ? `${(((p.kurs-p.kaufkurs)/p.kaufkurs)*100).toFixed(0)}%` : 'n/a';
+    return `${p.bezeichnung} (${p.wkn||p.isin||'?'}): ${pct}% des Portfolios, Klasse: ${p.typ_auto}, Performance: ${perf}`;
+  }).join('\n');
+
+  const prompt = `Du analysierst ein Portfolio eines deutschen Privatanlegers (56 Jahre, mittleres Risiko).
+
+Top-Positionen:
+${posText}
+
+Erstelle für jede Position eine kurze, konkrete Frage/Anmerkung die der Anleger bestätigen oder korrigieren soll.
+Ziel: Verstehen ob Positionen bewusst gehalten werden oder versehentliche Klumpenrisiken sind.
+
+Antworte NUR mit einem JSON-Array. Kein Text davor oder danach. Format:
+[
+  {"position": "Bezeichnung (WKN)", "vorschlag": "Kurze Frage oder Annahme als Aussage", "typ": "anker|risiko|steuer|strategie"}
+]
+
+Beispiele für gute Vorschläge:
+- anker: "Bewusster Stabilitätsanker — Reduktionsempfehlungen ignorieren"
+- risiko: "Klumpenrisiko bekannt — Abbau bei nächster Stärke geplant"  
+- steuer: "Verlustposition zur steuerlichen Verrechnung halten"
+- strategie: "Langfristige Kernposition — kein Rebalancing gewünscht"
+
+Maximal 8 Einträge. Nur die wichtigsten Positionen.`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': document.getElementById('api-key').value.trim(),
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-5',
+        max_tokens: 1000,
+        messages: [{ role: 'user', content: prompt }]
+      })
+    });
+
+    const data = await response.json();
+    const raw = data.content.filter(b => b.type === 'text').map(b => b.text).join('');
+    const clean = raw.replace(/```json|```/g,'').trim();
+    const suggestions = JSON.parse(clean);
+
+    document.getElementById('context-loading').style.display = 'none';
+    renderContextFields(suggestions);
+
+  } catch(e) {
+    document.getElementById('context-loading').style.display = 'none';
+    document.getElementById('context-fields').innerHTML =
+      '<div class="info-box" style="border-color:var(--yellow);">Vorschläge konnten nicht geladen werden — bitte Anmerkungen manuell eingeben.</div>';
+    renderContextFields([]);
+  }
+}
+
+function renderContextFields(suggestions) {
+  const typLabels = {
+    anker: { label: 'Stabilitätsanker', color: 'var(--green)' },
+    risiko: { label: 'Klumpenrisiko', color: 'var(--red)' },
+    steuer: { label: 'Steuer', color: 'var(--gold)' },
+    strategie: { label: 'Strategie', color: 'var(--accent)' }
+  };
+
+  state.contextSuggestions = suggestions;
+
+  document.getElementById('context-fields').innerHTML = suggestions.map((s, i) => {
+    const t = typLabels[s.typ] || typLabels.strategie;
+    return `
+      <div style="margin-bottom:10px;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+          <span style="font-family:var(--mono);font-size:11px;color:var(--text-muted);">${s.position}</span>
+          <span style="font-size:10px;padding:1px 6px;border-radius:2px;background:${t.color}22;color:${t.color};font-family:var(--mono);">${t.label}</span>
+        </div>
+        <input type="text" id="ctx-${i}" value="${s.vorschlag.replace(/"/g,'&quot;')}"
+          style="width:100%;background:var(--bg);border:1px solid var(--border-bright);color:var(--text);padding:8px 12px;border-radius:3px;font-family:var(--mono);font-size:12px;outline:none;">
+      </div>
+    `;
+  }).join('');
+}
+
+function getContextText() {
+  const suggestions = state.contextSuggestions || [];
+  const fields = suggestions.map((s, i) => {
+    const el = document.getElementById('ctx-' + i);
+    const val = el ? el.value.trim() : s.vorschlag;
+    return val ? `- ${s.position}: ${val}` : null;
+  }).filter(Boolean);
+
+  const extra = document.getElementById('context-extra');
+  if (extra && extra.value.trim()) fields.push(`- Allgemein: ${extra.value.trim()}`);
+
+  return fields.length > 0 ? fields.join('\n') : '';
 }
 
 function goToMapping() {
@@ -796,12 +937,19 @@ async function runAnalysis() {
     }
   }
 
+  // Collect context from step 3b
+  const contextText = getContextText();
+  const contextSection = contextText
+    ? `\nANLEGER-KONTEXT (vom Nutzer bestätigt — bitte in Empfehlungen berücksichtigen):\n${contextText}\n`
+    : '';
+
   const systemPrompt = `Du bist ein erfahrener Portfolio-Stratege mit Expertise aus den Prinzipien von Bridgewater (Ray Dalio), BlackRock und Goldman Sachs. Du erstellst präzise, umsetzbare monatliche Investment-Reports auf Deutsch. Datum: ${heute}. Antworte mit Markdown-Überschriften und Tabellen.`;
 
   const userPrompt = `INVESTOR-PROFIL:
 - Alter: ${alter} Jahre | Budget: ${budget} EUR/Monat | Risiko: ${risiko} | Ziel: ${ziel} | Horizont: ${horizont}
 - Steuern: Deutschland, Abgeltungssteuer 25% + Soli
 ${zielallokation ? `- Zielallokation: ${zielallokation}` : '- Zielallokation: bitte empfehlen'}
+${contextSection}
 
 PORTFOLIO (Stand ${heute}):
 ${pText}
