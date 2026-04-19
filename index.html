@@ -137,9 +137,12 @@ tr:last-child td { border-bottom: none; }
 #report-content h3 { color: var(--gold); font-weight: 500; margin: 1rem 0 0.4rem; font-size: 13px; }
 #report-content strong { color: var(--text); font-weight: 500; }
 #report-content p { margin-bottom: 0.75rem; }
-#report-content table { margin: 1rem 0; }
-#report-content th { font-size: 11px; }
-#report-content td { font-size: 13px; white-space: normal; }
+#report-content table { margin: 1rem 0; border-collapse: collapse; }
+#report-content th { font-size: 11px; background: var(--accent-dim); }
+#report-content td { font-size: 13px; white-space: normal; vertical-align: top; }
+#report-content tr:nth-child(even) td { background: rgba(255,255,255,0.02); }
+#report-content td:first-child, #report-content th:first-child { padding-left: 12px; }
+#report-content hr { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
 #report-content code { font-family: var(--mono); background: var(--border); padding: 1px 5px; border-radius: 2px; font-size: 12px; color: var(--gold); }
 #report-content ul, #report-content ol { padding-left: 1.25rem; margin: 0.5rem 0 0.75rem; }
 #report-content li { margin-bottom: 0.25rem; }
@@ -1109,7 +1112,7 @@ Antworte direkt und konkret. Keine allgemeinen Aussagen. Kennzeichne am Ende: KI
       },
       body: JSON.stringify({
         model: 'claude-opus-4-5',
-        max_tokens: 4000,
+        max_tokens: 8000,
         system: systemPrompt,
         messages: [{ role: 'user', content: userPrompt }],
         tools: [{ type: 'web_search_20250305', name: 'web_search' }]
@@ -1144,77 +1147,108 @@ Antworte direkt und konkret. Keine allgemeinen Aussagen. Kennzeichne am Ende: KI
 // MARKDOWN RENDERER
 // ═══════════════════════════════════════════════════════════
 function renderMarkdown(text) {
-  // Pre-clean: remove web search citation artifacts
-  // Lines that are just "|" or "| |" between table rows
-  text = text.replace(/^\|\s*\|?\s*$/gm, '');
-  // Remove footnote-style citations that appear as standalone lines after table cells
-  text = text.replace(/^(?!\|)[^\n#*-].{0,120}\[(?:\d+|[a-z]+\.\w+)\].*$/gm, (match) => {
-    // Only remove if it looks like a citation fragment (short, ends with source ref)
-    return match.length < 150 && match.includes('[') ? '' : match;
-  });
-  // Clean up multiple blank lines
+  // Step 1: Pre-clean web search artifacts
+  // Remove lines that are ONLY a pipe character (citation separators)
+  text = text.replace(/^\s*\|\s*$/gm, '');
+  // Remove multiple blank lines
   text = text.replace(/\n{3,}/g, '\n\n');
-
+  // Fix table rows where web search injects citation text between pipes on same line
+  // Pattern: "Cell content\n| citation text |" -> just keep the table row
+  
   const lines = text.split('\n');
   let html = '';
-  let inTable = false, inList = false;
+  let inTable = false;
+  let inList = false;
+  let tableHasHeader = false;
 
   for (let i = 0; i < lines.length; i++) {
     let line = lines[i];
+    
+    // Inline formatting
     line = line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    line = line.replace(/\*(.+?)\*/g, '<em>$1</em>');
     line = line.replace(/`(.+?)`/g, '<code>$1</code>');
 
-    if (line.startsWith('## ')) {
-      if (inTable) { html += '</table>'; inTable = false; }
+    const trimmed = line.trim();
+
+    // Headings
+    if (trimmed.startsWith('### ')) {
+      if (inTable) { html += '</table>'; inTable = false; tableHasHeader = false; }
       if (inList)  { html += '</ul>'; inList = false; }
-      html += `<h2>${line.slice(3)}</h2>`;
-    } else if (line.startsWith('### ')) {
-      if (inTable) { html += '</table>'; inTable = false; }
+      html += `<h3>${trimmed.slice(4)}</h3>`;
+      continue;
+    }
+    if (trimmed.startsWith('## ')) {
+      if (inTable) { html += '</table>'; inTable = false; tableHasHeader = false; }
       if (inList)  { html += '</ul>'; inList = false; }
-      html += `<h3>${line.slice(4)}</h3>`;
-    } else if (line.startsWith('# ')) {
-      html += `<h1>${line.slice(2)}</h1>`;
-    } else if (line.startsWith('|')) {
+      html += `<h2>${trimmed.slice(3)}</h2>`;
+      continue;
+    }
+    if (trimmed.startsWith('# ')) {
+      if (inTable) { html += '</table>'; inTable = false; tableHasHeader = false; }
+      if (inList)  { html += '</ul>'; inList = false; }
+      html += `<h1>${trimmed.slice(2)}</h1>`;
+      continue;
+    }
+
+    // Table rows — only lines that START and END with |
+    if (trimmed.startsWith('|') && trimmed.endsWith('|')) {
+      const cells = trimmed.split('|').slice(1,-1).map(c => c.trim());
+      
+      // Divider row (---|---|---)
+      if (cells.every(c => /^[-:]+$/.test(c))) {
+        if (!inTable) { html += '<table>'; inTable = true; }
+        tableHasHeader = true;
+        continue;
+      }
+      // Skip empty rows
+      if (cells.every(c => c === '')) continue;
+      
       if (!inTable) { html += '<table>'; inTable = true; }
-      const cells = line.split('|').slice(1,-1).map(c => c.trim());
-      const isDivider = cells.every(c => c.match(/^[-:]+$/));
-      if (isDivider) continue;
-      // Skip empty rows (citation artifacts)
-      if (cells.every(c => c === '' || c === '|')) continue;
-      const tag = (lines[i+1] && lines[i+1].match(/^\|[-| :]+\|$/)) ? 'th' : 'td';
+      
+      // Determine if header: next line is divider
+      const nextTrimmed = (lines[i+1] || '').trim();
+      const isHeader = !tableHasHeader && nextTrimmed.startsWith('|') && 
+        nextTrimmed.split('|').slice(1,-1).every(c => /^[-:]+$/.test(c.trim()));
+      const tag = isHeader ? 'th' : 'td';
       html += '<tr>' + cells.map(c => `<${tag}>${c}</${tag}>`).join('') + '</tr>';
-    } else if (line.startsWith('- ') || line.startsWith('* ')) {
-      if (inTable) { html += '</table>'; inTable = false; }
+      continue;
+    }
+
+    // Non-table line while in table — close table
+    if (inTable) { html += '</table>'; inTable = false; tableHasHeader = false; }
+
+    // List items
+    if (trimmed.startsWith('- ') || trimmed.startsWith('* ')) {
       if (!inList) { html += '<ul>'; inList = true; }
-      html += `<li>${line.slice(2)}</li>`;
-    } else {
-      if (inTable) { html += '</table>'; inTable = false; }
-      if (inList)  { html += '</ul>'; inList = false; }
-      if (line.trim()) html += `<p>${line}</p>`;
+      html += `<li>${trimmed.slice(2)}</li>`;
+      continue;
+    }
+    if (trimmed.match(/^\d+\. /)) {
+      if (inList) { html += '</ul>'; inList = false; }
+      html += `<li>${trimmed.replace(/^\d+\. /, '')}</li>`;
+      continue;
+    }
+
+    // Close list
+    if (inList && trimmed === '') { html += '</ul>'; inList = false; }
+    else if (inList) { html += `<li>${trimmed}</li>`; continue; }
+
+    // Horizontal rule
+    if (trimmed === '---' || trimmed === '***') {
+      html += '<hr style="border:none;border-top:1px solid var(--border);margin:1rem 0;">';
+      continue;
+    }
+
+    // Paragraph
+    if (trimmed !== '') {
+      html += `<p>${trimmed}</p>`;
     }
   }
+
   if (inTable) html += '</table>';
   if (inList)  html += '</ul>';
   return html;
 }
 
-// ═══════════════════════════════════════════════════════════
-// HELPERS
-// ═══════════════════════════════════════════════════════════
-function fmtEur(v) { return v.toLocaleString('de-DE', {minimumFractionDigits:0, maximumFractionDigits:0}) + ' EUR'; }
-function fmtNum(v) { return Number(v).toLocaleString('de-DE', {minimumFractionDigits:0, maximumFractionDigits:2}); }
-function showError(msg) { const e = document.getElementById('error-box'); e.textContent = msg; e.classList.add('visible'); window.scrollTo(0,0); }
-function hideError() { document.getElementById('error-box').classList.remove('visible'); }
-function showStatus(msg) { document.getElementById('status-text').textContent = msg; document.getElementById('status-bar').classList.add('visible'); }
-function hideStatus() { document.getElementById('status-bar').classList.remove('visible'); }
 
-// Drag & Drop
-const dz = document.getElementById('drop-zone');
-if (dz) {
-  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
-  dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
-  dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('dragover'); handleFiles(e.dataTransfer.files); });
-}
-</script>
-</body>
-</html>
