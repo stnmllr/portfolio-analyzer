@@ -1082,11 +1082,19 @@ Tabellarisch: Asset-Klasse | IST% | SOLL% | Differenz | Handlungsbedarf
 - Größtes Einzelrisiko benennen
 
 ## 6. ENTSCHEIDUNGS-ZUSAMMENFASSUNG
-WICHTIG: Für JEDE Position >3% des Portfolios GENAU EINE klare Aktion angeben.
+Die Tabelle hat ZWEI Teile:
+
+**Teil A — Bestehende Positionen (>3% des Portfolios):**
 Tabelle: | Position | Aktuell % | Aktion | Begründung | Priorität |
-Aktionen NUR: HALTEN · KAUFEN · AUFSTOCKEN · REDUZIEREN · VERKAUFEN
-Keine Doppeldeutigkeiten — eine Position, eine Aktion.
-NIEMALS "Verlustverrechnung" als eigenständige Aktion in der Tabelle. Verluste nur als Begleithinweis in der Begründungsspalte erwähnen, wenn die Position aus strategischen Gründen sowieso verkauft wird.
+Aktionen NUR: HALTEN · AUFSTOCKEN · REDUZIEREN · VERKAUFEN
+GENAU EINE Aktion pro Position, keine Doppeldeutigkeiten.
+NIEMALS "Verlustverrechnung" als eigenständige Aktion. Nur als Begleithinweis in der Begründungsspalte wenn sowieso verkauft wird.
+
+**Teil B — Neue Positionen (Kaufempfehlungen aus Abschnitten 2b und 4):**
+Tabelle: | Neue Position | ISIN | Betrag/Monat | Begründung | Priorität |
+Aktion immer: KAUFEN
+Hier müssen ALLE Empfehlungen aus Abschnitt 2b (Europa-Rebalancing) und Abschnitt 4 (Monatsbudget) als konkrete Zeilen erscheinen — mit Betrag in EUR.
+Beispiel: iShares Core MSCI Europe | IE00B4K48X80 | 750 EUR/Monat | Europa-Untergewichtung korrigieren (Dalio) | HOCH
 
 Antworte direkt und konkret. Keine allgemeinen Aussagen. Kennzeichne am Ende: KI-Entscheidungshilfe, keine Anlageberatung.`;
 
@@ -1136,6 +1144,17 @@ Antworte direkt und konkret. Keine allgemeinen Aussagen. Kennzeichne am Ende: KI
 // MARKDOWN RENDERER
 // ═══════════════════════════════════════════════════════════
 function renderMarkdown(text) {
+  // Pre-clean: remove web search citation artifacts
+  // Lines that are just "|" or "| |" between table rows
+  text = text.replace(/^\|\s*\|?\s*$/gm, '');
+  // Remove footnote-style citations that appear as standalone lines after table cells
+  text = text.replace(/^(?!\|)[^\n#*-].{0,120}\[(?:\d+|[a-z]+\.\w+)\].*$/gm, (match) => {
+    // Only remove if it looks like a citation fragment (short, ends with source ref)
+    return match.length < 150 && match.includes('[') ? '' : match;
+  });
+  // Clean up multiple blank lines
+  text = text.replace(/\n{3,}/g, '\n\n');
+
   const lines = text.split('\n');
   let html = '';
   let inTable = false, inList = false;
@@ -1160,9 +1179,9 @@ function renderMarkdown(text) {
       const cells = line.split('|').slice(1,-1).map(c => c.trim());
       const isDivider = cells.every(c => c.match(/^[-:]+$/));
       if (isDivider) continue;
-      const isHeader = !lines.slice(0,i).some(l => l.startsWith('|')) ||
-        (lines[i+1] && lines[i+1].match(/^\|[-| :]+\|$/));
-      const tag = (lines[i-1] === '' || i === 0) && lines[i+1] && lines[i+1].match(/^\|[-| :]+\|$/) ? 'th' : 'td';
+      // Skip empty rows (citation artifacts)
+      if (cells.every(c => c === '' || c === '|')) continue;
+      const tag = (lines[i+1] && lines[i+1].match(/^\|[-| :]+\|$/)) ? 'th' : 'td';
       html += '<tr>' + cells.map(c => `<${tag}>${c}</${tag}>`).join('') + '</tr>';
     } else if (line.startsWith('- ') || line.startsWith('* ')) {
       if (inTable) { html += '</table>'; inTable = false; }
