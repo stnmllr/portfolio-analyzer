@@ -490,9 +490,9 @@ function removeFile(i) {
 // ═══════════════════════════════════════════════════════════
 const MAPPING_HINTS = {
   bezeichnung: ['bezeichnung','name','beschreibung','wertpapier','titel','position','papier','security'],
-  wert:        ['wert in eur','wert eur','marktwert','depotwert','kurswert','wert','value'],
+  wert:        ['wert in eur','wert eur','marktwert','kurswert','value in eur'],
   kurs:        ['akt. kurs','aktueller kurs','kurs','preis','price','kurs eur'],
-  stueck:      ['stück','stueck','nominale','bestand','anzahl','menge','quantity','stück / nominale'],
+  stueck:      ['stück / nominale','stück','stueck','nominale','bestand','anzahl','menge','quantity'],
   kaufkurs:    ['kaufkurs','einstandskurs','einstand','buy price','einstandskurs eur'],
   typ:         ['typ','type','art','kategorie','category','asset type'],
   isin:        ['isin'],
@@ -503,8 +503,22 @@ function autoMap(headers) {
   const mapping = {};
   const lh = headers.map(h => h.toLowerCase());
   for (const [field, hints] of Object.entries(MAPPING_HINTS)) {
+    let found = false;
+    // First pass: exact match
     for (const hint of hints) {
-      const idx = lh.findIndex(h => h.includes(hint));
+      const idx = lh.findIndex(h => h === hint);
+      if (idx >= 0) { mapping[field] = headers[idx]; found = true; break; }
+    }
+    if (found) continue;
+    // Second pass: starts-with match
+    for (const hint of hints) {
+      const idx = lh.findIndex(h => h.startsWith(hint));
+      if (idx >= 0) { mapping[field] = headers[idx]; found = true; break; }
+    }
+    if (found) continue;
+    // Third pass: includes match (but skip if header contains 'einstand' for wert field)
+    for (const hint of hints) {
+      const idx = lh.findIndex(h => h.includes(hint) && !(field === 'wert' && h.includes('einstand')));
       if (idx >= 0) { mapping[field] = headers[idx]; break; }
     }
   }
