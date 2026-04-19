@@ -444,6 +444,9 @@ const state = {
   currentStep: 1
 };
 
+function fmtEur(v) { return Number(v).toLocaleString('de-DE', {minimumFractionDigits:0, maximumFractionDigits:0}) + ' EUR'; }
+function fmtNum(v) { return Number(v).toLocaleString('de-DE', {minimumFractionDigits:0, maximumFractionDigits:2}); }
+
 const FIELDS = [
   { key: 'bezeichnung', label: 'Bezeichnung / Name',    required: true  },
   { key: 'wert',        label: 'Wert in EUR',           required: true  },
@@ -825,15 +828,21 @@ function updateMapping(field, value) {
 // VALIDATION + PREVIEW
 // ═══════════════════════════════════════════════════════════
 function updateValidation() {
-  const normalized = normalizeAll();
-  state.normalized = normalized;
+  try {
+    const normalized = normalizeAll();
+    state.normalized = normalized;
 
-  const checks = runChecks(normalized);
-  renderValidation(checks);
-  renderPreview(normalized.slice(0, 5));
+    const checks = runChecks(normalized);
+    renderValidation(checks);
+    renderPreview(normalized.slice(0, 5));
 
-  const hasErrors = checks.some(c => c.level === 'red');
-  document.getElementById('btn-confirm').disabled = hasErrors || normalized.length === 0;
+    const hasErrors = checks.some(c => c.level === 'red');
+    document.getElementById('btn-confirm').disabled = hasErrors || normalized.length === 0;
+  } catch(e) {
+    document.getElementById('validation-result').innerHTML =
+      `<div class="ampel red"><div class="ampel-dot"></div><span>Fehler: ${e.message}</span></div>`;
+    console.error('updateValidation error:', e);
+  }
 }
 
 function runChecks(positions) {
@@ -1287,9 +1296,6 @@ function renderMarkdown(text) {
 }
 
 
-
-function fmtEur(v) { return Number(v).toLocaleString('de-DE', {minimumFractionDigits:0, maximumFractionDigits:0}) + ' EUR'; }
-function fmtNum(v) { return Number(v).toLocaleString('de-DE', {minimumFractionDigits:0, maximumFractionDigits:2}); }
 
 async function pasteApiKey() {
   try {
