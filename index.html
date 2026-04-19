@@ -288,6 +288,13 @@ tr:last-child td { border-bottom: none; }
         <label>Gewünschte Zielallokation (leer = automatisch empfohlen)</label>
         <input type="text" id="zielallokation" placeholder="z.B. 60% Aktien, 20% Anleihen, 10% Gold, 10% Cash">
       </div>
+      <div class="field">
+        <label>Bestehende Sparpläne (optional)</label>
+        <input type="text" id="sparplan" placeholder="z.B. MSCI World (A0RPWH): 1.200 EUR/Monat · Xetra-Gold: 500 EUR/Monat">
+        <div style="font-size:11px;color:var(--text-muted);font-family:var(--mono);margin-top:4px;">
+          Leer lassen wenn kein Sparplan vorhanden. Claude berücksichtigt laufende Sparpläne bei den Empfehlungen.
+        </div>
+      </div>
     </div>
   </div>
 
@@ -1057,6 +1064,7 @@ async function runAnalysis() {
   }
 
   // Collect context from step 3b
+  const sparplan = document.getElementById('sparplan') ? document.getElementById('sparplan').value.trim() : '';
   const contextText = getContextText();
   const contextSection = contextText
     ? `\nANLEGER-KONTEXT (vom Nutzer bestätigt — bitte in Empfehlungen berücksichtigen):\n${contextText}\n`
@@ -1075,6 +1083,7 @@ FORMATIERUNGSREGELN (strikt einhalten):
 - Alter: ${alter} | Budget: ${budget} EUR/Monat | Risiko: ${risiko} | Ziel: ${ziel} | Horizont: ${horizont}
 - Steuern: Deutschland, Abgeltungssteuer 25% + Soli
 ${zielallokation ? `- Zielallokation: ${zielallokation}` : '- Zielallokation: bitte empfehlen'}
+${sparplan ? `- Bestehende Sparpläne (laufen bereits automatisch, bei Empfehlungen berücksichtigen): ${sparplan}` : ''}
 ${contextSection}
 PORTFOLIO (Stand ${heute}):
 ${pText}
