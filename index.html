@@ -395,13 +395,25 @@ function handleFiles(fileList) {
   Array.from(fileList).forEach(file => {
     const reader = new FileReader();
     reader.onload = e => {
-      const raw = e.target.result;
+      let raw = e.target.result;
+      // Detect encoding: if UTF-8 parse yields too few columns, retry as Latin-1
       const parsed = parseCSV(raw, file.name);
-      state.files.push({ name: file.name, raw, ...parsed });
-      renderFileList();
-      document.getElementById('btn-to-mapping').disabled = state.files.length === 0;
+      if (parsed.headers.length < 3 || parsed.rows.length === 0) {
+        const reader2 = new FileReader();
+        reader2.onload = e2 => {
+          const raw2 = e2.target.result;
+          const parsed2 = parseCSV(raw2, file.name);
+          state.files.push({ name: file.name, raw: raw2, ...parsed2 });
+          renderFileList();
+          document.getElementById('btn-to-mapping').disabled = state.files.length === 0;
+        };
+        reader2.readAsText(file, 'ISO-8859-1');
+      } else {
+        state.files.push({ name: file.name, raw, ...parsed });
+        renderFileList();
+        document.getElementById('btn-to-mapping').disabled = state.files.length === 0;
+      }
     };
-    // Try UTF-8 first, fallback handled in parseCSV
     reader.readAsText(file, 'UTF-8');
   });
 }
