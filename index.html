@@ -1084,8 +1084,13 @@ FORMATIERUNGSREGELN (strikt einhalten):
 - Alter: ${alter} | Budget: ${budget} EUR/Monat | Risiko: ${risiko} | Ziel: ${ziel} | Horizont: ${horizont}
 - Steuern: Deutschland, Abgeltungssteuer 25% + Soli
 ${zielallokation ? `- Zielallokation: ${zielallokation}` : '- Zielallokation: bitte empfehlen'}
-${sparplan ? `- Bestehende Sparpläne (laufen bereits automatisch): ${sparplan}
-  WICHTIG: In Abschnitt 5 (Monatsbudget) und Abschnitt 7 Teil B KEINE Positionen empfehlen die bereits per Sparplan bespart werden. Stattdessen ergänzende Positionen vorschlagen.` : ''}
+${sparplan ? `- Monatliches Gesamtbudget: ${budget} EUR (inkl. aller Sparpläne)
+- Bestehende Sparpläne (laufen bereits automatisch): ${sparplan}
+  WICHTIG: Das Budget von ${budget} EUR ist das GESAMTBUDGET inkl. Sparpläne.
+  Freies Budget = ${budget} EUR minus Summe aller Sparpläne.
+  Wenn freies Budget ≤ 0: Nur Sparplan-Umschichtungen empfehlen (bestehende Sparpläne ändern), keine neuen Käufe.
+  Wenn freies Budget > 0: Nur diesen Restbetrag für neue Positionen empfehlen.
+  In Abschnitt 5 und Teil B immer zuerst das freie Budget berechnen und ausweisen.` : ''}
 ${contextSection}
 PORTFOLIO (Stand ${heute}):
 ${pText}
@@ -1118,7 +1123,9 @@ Dann konkrete Empfehlungen (max. 3):
 - Was kaufen/aufstocken: Position, Betrag, Begründung
 - Steuerhinweis NUR wenn relevant: "Falls X verkauft wird, dann Y gleichzeitig zur Verlustverrechnung" — niemals Verlustverrechnung als eigenständige Empfehlung
 
-## 5. DIESEN MONAT — ${budget} EUR
+## 5. DIESEN MONAT
+Zuerst berechnen: Freies Budget = ${budget} EUR Gesamtbudget minus laufende Sparpläne.
+Diesen Betrag explizit ausweisen. Wenn ≤ 0: Empfehlung zur Sparplan-Umschichtung statt Neukäufen.
 Tabelle (max. 3 Zeilen): | Position | ISIN | Betrag | Einstiegszone | Begründung |
 
 ## 6. STRESSTEST
@@ -1128,10 +1135,11 @@ Größtes Einzelrisiko: 1 Satz.
 
 ## 7. ENTSCHEIDUNGS-SUMMARY
 Teil A — Bestehende Positionen (alle >3%):
-| Position | % | Aktion | Begründung (1 Satz) | Priorität |
-Aktion: HALTEN · AUFSTOCKEN · REDUZIEREN · VERKAUFEN — eine pro Position, keine Doppeldeutigkeit.
-Anleger-Kontext beachten: Wenn eine Position vom Nutzer mit "laufen lassen" oder "langfristig halten" markiert ist, diese Präferenz in der Begründung erwähnen — aber trotzdem eine sachlich begründete Aktion empfehlen.
-Verlustverrechnung NIEMALS als Aktion — höchstens als Klammer in Begründung wenn sowieso verkauft.
+| Position | % | Aktion | Betrag | Begründung (1 Satz) | Priorität |
+- Aktion: HALTEN · AUFSTOCKEN · REDUZIEREN · VERKAUFEN — eine pro Position, keine Doppeldeutigkeit.
+- Betrag: Bei REDUZIEREN/VERKAUFEN: konkreter EUR-Betrag (z.B. "15.000 EUR"). Bei HALTEN/AUFSTOCKEN: "—"
+- Anleger-Kontext beachten: Wenn eine Position vom Nutzer mit "laufen lassen" oder "langfristig halten" markiert ist, diese Präferenz in der Begründung erwähnen — aber trotzdem sachlich empfehlen.
+- Verlustverrechnung NIEMALS als Aktion — höchstens als Klammer in Begründung wenn sowieso verkauft.
 
 Teil B — Neue Käufe:
 | Position | ISIN | EUR/Monat | Begründung | Priorität |
