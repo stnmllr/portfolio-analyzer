@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Portfolio Analyzer v5</title>
+<title>Portfolio Analyzer v5.1</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src https://api.anthropic.com; img-src 'none';">
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
@@ -180,7 +180,7 @@ tr:last-child td { border-bottom: none; }
 <div class="app">
 
 <div class="header">
-  <div class="logo">// portfolio.analyzer · v5</div>
+  <div class="logo">// portfolio.analyzer · v5.1</div>
   <h1>Monatlicher <span>Investment-Report</span></h1>
   <div class="subtitle">Monatliche KI-Portfolioanalyse · Bankenunabhängig · Bridgewater · BlackRock · Goldman Sachs</div>
 </div>
@@ -244,7 +244,11 @@ tr:last-child td { border-bottom: none; }
       <div class="field">
         <label>API-Key (bleibt lokal im Browser, wird nie gespeichert oder übertragen)</label>
         <div style="display:flex;gap:8px;align-items:center;">
-          <input type="text" id="api-key" placeholder="sk-ant-api03-..." autocomplete="off" style="flex:1;font-family:var(--mono);font-size:12px;">
+          <input type="text" id="api-key" placeholder="sk-ant-api03-..." style="flex:1;font-family:var(--mono);font-size:12px;" spellcheck="false" autocorrect="off" autocapitalize="off">
+          <button type="button" onclick="pasteApiKey()" title="Aus Zwischenablage einfügen"
+            style="flex-shrink:0;padding:8px 12px;background:var(--bg);border:1px solid var(--border-bright);color:var(--text-muted);border-radius:3px;cursor:pointer;font-family:var(--mono);font-size:11px;white-space:nowrap;">
+            einfügen
+          </button>
           <button type="button" onclick="toggleKeyVisibility()" id="key-toggle"
             style="flex-shrink:0;padding:8px 12px;background:var(--bg);border:1px solid var(--border-bright);color:var(--text-muted);border-radius:3px;cursor:pointer;font-family:var(--mono);font-size:11px;white-space:nowrap;">
             verbergen
@@ -1283,3 +1287,39 @@ function renderMarkdown(text) {
 }
 
 
+
+async function pasteApiKey() {
+  try {
+    const text = await navigator.clipboard.readText();
+    document.getElementById('api-key').value = text.trim();
+  } catch(e) {
+    document.getElementById('api-key').focus();
+  }
+}
+
+function toggleKeyVisibility() {
+  const inp = document.getElementById('api-key');
+  const btn = document.getElementById('key-toggle');
+  if (inp.type === 'text') {
+    inp.type = 'password';
+    btn.textContent = 'anzeigen';
+  } else {
+    inp.type = 'text';
+    btn.textContent = 'verbergen';
+  }
+}
+
+function showError(msg) { const e = document.getElementById('error-box'); e.textContent = msg; e.classList.add('visible'); window.scrollTo(0,0); }
+function hideError() { document.getElementById('error-box').classList.remove('visible'); }
+function showStatus(msg) { document.getElementById('status-text').textContent = msg; document.getElementById('status-bar').classList.add('visible'); }
+function hideStatus() { document.getElementById('status-bar').classList.remove('visible'); }
+
+const dz = document.getElementById('drop-zone');
+if (dz) {
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+  dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('dragover'); handleFiles(e.dataTransfer.files); });
+}
+</script>
+</body>
+</html>
