@@ -418,6 +418,12 @@ function handleFiles(fileList) {
   });
 }
 
+function fixEncoding(s) {
+  return s.replace(/Ã¼/g,'ü').replace(/Ã¶/g,'ö').replace(/Ã¤/g,'ä')
+          .replace(/Ã/g,'Ü').replace(/Ã–/g,'Ö').replace(/Ã„/g,'Ä')
+          .replace(/Ã/g,'ß').replace(/�/g,'');
+}
+
 function parseCSV(raw, filename) {
   // Detect separator — use first non-empty line
   const firstLine = raw.split('\n').map(l => l.trim()).find(l => l.length > 0) || '';
@@ -433,7 +439,7 @@ function parseCSV(raw, filename) {
     if (cols.length >= 3 && cols.filter(c => c.trim()).length >= 3) { headerIdx = i; break; }
   }
 
-  const headers = splitLine(lines[headerIdx], sep).map(h => h.replace(/"/g,'').trim());
+  const headers = splitLine(lines[headerIdx], sep).map(h => fixEncoding(h.replace(/"/g,'').trim()));
   const rows = [];
   for (let i = headerIdx + 1; i < lines.length; i++) {
     const cols = splitLine(lines[i], sep);
