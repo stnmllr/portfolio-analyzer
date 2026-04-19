@@ -1288,6 +1288,9 @@ function renderMarkdown(text) {
 
 
 
+function fmtEur(v) { return Number(v).toLocaleString('de-DE', {minimumFractionDigits:0, maximumFractionDigits:0}) + ' EUR'; }
+function fmtNum(v) { return Number(v).toLocaleString('de-DE', {minimumFractionDigits:0, maximumFractionDigits:2}); }
+
 async function pasteApiKey() {
   try {
     const text = await navigator.clipboard.readText();
