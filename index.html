@@ -244,10 +244,10 @@ tr:last-child td { border-bottom: none; }
       <div class="field">
         <label>API-Key (bleibt lokal im Browser, wird nie gespeichert oder übertragen)</label>
         <div style="display:flex;gap:8px;align-items:center;">
-          <input type="password" id="api-key" placeholder="sk-ant-api03-..." autocomplete="off" style="flex:1;">
+          <input type="text" id="api-key" placeholder="sk-ant-api03-..." autocomplete="off" style="flex:1;font-family:var(--mono);font-size:12px;">
           <button type="button" onclick="toggleKeyVisibility()" id="key-toggle"
             style="flex-shrink:0;padding:8px 12px;background:var(--bg);border:1px solid var(--border-bright);color:var(--text-muted);border-radius:3px;cursor:pointer;font-family:var(--mono);font-size:11px;white-space:nowrap;">
-            anzeigen
+            verbergen
           </button>
         </div>
       </div>
