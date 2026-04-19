@@ -207,36 +207,21 @@ tr:last-child td { border-bottom: none; }
         <span style="color:var(--text);">BlackRock</span> und
         <span style="color:var(--text);">Goldman Sachs</span>.
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:1.25rem;">
-        <div style="background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:10px 14px;">
-          <div style="font-size:11px;color:var(--accent);font-family:var(--mono);margin-bottom:4px;">MARKTLAGE</div>
-          <div style="font-size:12px;color:var(--text-muted);">Aktuelle Makro-Einschätzung: Zinsen, Inflation, Konjunkturphase — direkt aus dem Web</div>
-        </div>
-        <div style="background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:10px 14px;">
-          <div style="font-size:11px;color:var(--accent);font-family:var(--mono);margin-bottom:4px;">PORTFOLIO-CHECK</div>
-          <div style="font-size:12px;color:var(--text-muted);">Allokation, Klumpenrisiken, Duplikate, USD-Exposure, Dalio Big Cycle Analyse</div>
-        </div>
-        <div style="background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:10px 14px;">
-          <div style="font-size:11px;color:var(--accent);font-family:var(--mono);margin-bottom:4px;">KONTEXT-CHECK</div>
-          <div style="font-size:12px;color:var(--text-muted);">KI schlägt Anmerkungen zu deinen Positionen vor — du korrigierst, bevor die Analyse startet</div>
-        </div>
-        <div style="background:var(--bg);border:1px solid var(--border);border-radius:3px;padding:10px 14px;">
-          <div style="font-size:11px;color:var(--accent);font-family:var(--mono);margin-bottom:4px;">ENTSCHEIDUNGS-SUMMARY</div>
-          <div style="font-size:12px;color:var(--text-muted);">Eine klare Aktion pro Position: HALTEN · KAUFEN · AUFSTOCKEN · REDUZIEREN · VERKAUFEN</div>
-        </div>
-      </div>
+
       <div style="border-top:1px solid var(--border);padding-top:1rem;">
-        <div style="font-size:11px;color:var(--text-muted);font-family:var(--mono);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.06em;">Changelog</div>
-        <div style="font-size:11px;font-family:var(--mono);line-height:2;color:var(--text-muted);">
-          <span style="color:var(--accent);">v5</span> · Verlustverrechnung-Fix (nie als eigenständige Empfehlung) · Toggle-State-Persistenz im Kontext-Check<br>
-          <span style="color:var(--text-dim);">v4</span> · Kontext-Check mit KI-Vorschlägen (Schritt 3b) · ✕/+ Toggle ohne Re-Render · Onboarding-Text<br>
-          <span style="color:var(--text-dim);">v3</span> · Dalio Big Cycle Abschnitt · Europa-Rebalancing-Strategie · Schärfere Entscheidungstabelle<br>
-          <span style="color:var(--text-dim);">v2</span> · Bankenunabhängiger Multi-CSV-Upload · Auto-Encoding (ISO-8859-1/UTF-8) · Mapping mit Ampel-Validierung · Vorschau-Tabelle<br>
-          <span style="color:var(--text-dim);">v1</span> · Erste Version · comdirect + Commerzbank · Grundanalyse
-        </div>
-      </div>
-    </div>
-  </div>
+        <details style="font-size:11px;font-family:var(--mono);">
+          <summary style="color:var(--text-dim);cursor:pointer;user-select:none;letter-spacing:0.06em;list-style:none;">
+            <span style="color:var(--accent);">v5.1</span> · Changelog anzeigen
+          </summary>
+          <div style="line-height:2;color:var(--text-muted);margin-top:8px;">
+            <span style="color:var(--accent);">v5.1</span> · UI-Vereinfachung · Encoding-Fix · Prompt-Schärfung<br>
+            <span style="color:var(--text-dim);">v4</span> · Kontext-Check · ✕/+ Toggle · Onboarding<br>
+            <span style="color:var(--text-dim);">v3</span> · Dalio Big Cycle · Europa-Rebalancing<br>
+            <span style="color:var(--text-dim);">v2</span> · Bankenunabhängig · Multi-CSV · Mapping<br>
+            <span style="color:var(--text-dim);">v1</span> · Erste Version
+          </div>
+        </details>
+      </div></div>
 
   <div class="panel">
     <div class="panel-header"><span class="panel-num">01</span><span class="panel-title">Anthropic API-Key</span></div>
@@ -245,10 +230,7 @@ tr:last-child td { border-bottom: none; }
         <label>API-Key (bleibt lokal im Browser, wird nie gespeichert oder übertragen)</label>
         <div style="display:flex;gap:8px;align-items:center;">
           <input type="text" id="api-key" placeholder="sk-ant-api03-..." style="flex:1;font-family:var(--mono);font-size:12px;" spellcheck="false" autocorrect="off" autocapitalize="off">
-          <button type="button" onclick="pasteApiKey()" title="Aus Zwischenablage einfügen"
-            style="flex-shrink:0;padding:8px 12px;background:var(--bg);border:1px solid var(--border-bright);color:var(--text-muted);border-radius:3px;cursor:pointer;font-family:var(--mono);font-size:11px;white-space:nowrap;">
-            einfügen
-          </button>
+
           <button type="button" onclick="toggleKeyVisibility()" id="key-toggle"
             style="flex-shrink:0;padding:8px 12px;background:var(--bg);border:1px solid var(--border-bright);color:var(--text-muted);border-radius:3px;cursor:pointer;font-family:var(--mono);font-size:11px;white-space:nowrap;">
             verbergen
@@ -1137,6 +1119,7 @@ Größtes Einzelrisiko: 1 Satz.
 Teil A — Bestehende Positionen (alle >3%):
 | Position | % | Aktion | Begründung (1 Satz) | Priorität |
 Aktion: HALTEN · AUFSTOCKEN · REDUZIEREN · VERKAUFEN — eine pro Position, keine Doppeldeutigkeit.
+Anleger-Kontext beachten: Wenn eine Position vom Nutzer mit "laufen lassen" oder "langfristig halten" markiert ist, diese Präferenz in der Begründung erwähnen — aber trotzdem eine sachlich begründete Aktion empfehlen.
 Verlustverrechnung NIEMALS als Aktion — höchstens als Klammer in Begründung wenn sowieso verkauft.
 
 Teil B — Neue Käufe:
