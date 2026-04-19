@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Portfolio Analyzer v5</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'unsafe-inline'; style-src 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src https://api.anthropic.com; img-src 'none';">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta name="referrer" content="no-referrer">
 <style>
 :root {
   --bg: #0a0a0f;
@@ -547,12 +550,21 @@ function splitLine(line, sep) {
   return result;
 }
 
+function sanitize(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function renderFileList() {
   const el = document.getElementById('file-list');
   el.innerHTML = state.files.map((f, i) => `
     <div class="file-item">
-      <span class="file-name">${f.name}</span>
-      <span class="file-rows">${f.rows.length} Zeilen · ${f.headers.length} Spalten · Trenner: "${f.sep}"</span>
+      <span class="file-name">${sanitize(f.name)}</span>
+      <span class="file-rows">${f.rows.length} Zeilen · ${f.headers.length} Spalten · Trenner: "${sanitize(f.sep)}"</span>
       <button class="file-remove" onclick="removeFile(${i})">✕</button>
     </div>
   `).join('');
@@ -772,7 +784,7 @@ function goToMapping() {
 }
 
 function renderMappingFields(headers) {
-  const optionsList = ['— nicht vorhanden —', ...headers].map(h => `<option value="${h}">${h}</option>`).join('');
+  const optionsList = ['— nicht vorhanden —', ...headers].map(h => `<option value="${sanitize(h)}">${sanitize(h)}</option>`).join('');
 
   const fileInfo = state.files.map(f => `${f.name} (${f.rows.length} Pos.)`).join(' · ');
   document.getElementById('mapping-info').textContent =
@@ -782,7 +794,7 @@ function renderMappingFields(headers) {
   container.innerHTML = '<div class="mapping-grid">' + FIELDS.map(f => {
     const current = state.mapping[f.key] || '';
     const opts = ['— nicht vorhanden —', ...headers].map(h =>
-      `<option value="${h}" ${h === current ? 'selected' : ''}>${h}</option>`
+      `<option value="${sanitize(h)}" ${h === current ? 'selected' : ''}>${sanitize(h)}</option>`
     ).join('');
     return `
       <div class="mapping-row">
@@ -885,7 +897,7 @@ function renderPreview(positions) {
     const plText = !ratio ? 'n/a' : ok ? '✓ OK' : `✗ ${ratio.toFixed(2)}x`;
     return `
       <tr>
-        <td>${p.bezeichnung || '—'}</td>
+        <td>${sanitize(p.bezeichnung || '—')}</td>
         <td class="${p.typ_auto === 'Anleihen' ? 'td-ok' : ''}">${p.typ_display}</td>
         <td class="td-muted">${p.stueck ? fmtNum(p.stueck) : '—'}</td>
         <td class="td-muted">${p.kurs ? fmtNum(p.kurs) : '—'}</td>
@@ -900,12 +912,28 @@ function renderPreview(positions) {
 // ═══════════════════════════════════════════════════════════
 // NORMALIZATION
 // ═══════════════════════════════════════════════════════════
+function sanitizePrompt(str) {
+  if (!str) return str;
+  // Remove potential prompt injection patterns
+  return String(str)
+    .replace(/ignore (previous|all|above)/gi, '')
+    .replace(/system prompt/gi, '')
+    .replace(/you are now/gi, '')
+    .replace(/\[INST\]|<\|im_start\|>/g, '')
+    .substring(0, 200); // Hard cap per field
+}
+
 function normalizeAll() {
   const positions = [];
   for (const file of state.files) {
     for (const row of file.rows) {
       const p = normalizeRow(row, file.name);
-      if (p && p.bezeichnung && (p.wert > 0 || p.kurs > 0)) positions.push(p);
+      if (p && p.bezeichnung && (p.wert > 0 || p.kurs > 0)) {
+        // Sanitize text fields against prompt injection
+        p.bezeichnung = sanitizePrompt(p.bezeichnung);
+        p.typRaw = sanitizePrompt(p.typRaw);
+        positions.push(p);
+      }
     }
   }
   return positions;
@@ -1033,73 +1061,70 @@ async function runAnalysis() {
     ? `\nANLEGER-KONTEXT (vom Nutzer bestätigt — bitte in Empfehlungen berücksichtigen):\n${contextText}\n`
     : '';
 
-  const systemPrompt = `Du bist ein erfahrener Portfolio-Stratege mit Expertise aus den Prinzipien von Bridgewater (Ray Dalio), BlackRock und Goldman Sachs. Du erstellst präzise, umsetzbare monatliche Investment-Reports auf Deutsch. Datum: ${heute}. Antworte mit Markdown-Überschriften und Tabellen.`;
+  const systemPrompt = `Du bist ein erfahrener Portfolio-Stratege mit Expertise aus den Prinzipien von Bridgewater (Ray Dalio), BlackRock und Goldman Sachs. Du erstellst präzise, umsetzbare monatliche Investment-Reports auf Deutsch. Datum: ${heute}.
+
+FORMATIERUNGSREGELN (strikt einhalten):
+- Tabellen: Jede Zeile MUSS mit | beginnen und enden. Niemals Text oder Zitate zwischen Tabellenzeilen einfügen.
+- Quellenbelege aus Web-Suchen: Nicht als separate Zeilen nach Tabellenzellen einfügen. Fakten direkt in die Tabellenzelle schreiben, ohne Zitatformat.
+- Tabellenzellen: Inhalt kompakt halten, max. 1-2 Sätze pro Zelle. Keine eingebetteten Zitate mit Anführungszeichen in Tabellenzellen.
+- Nach einer Tabelle: Erst eine Leerzeile, dann normaler Text. Kein | als alleinstehende Zeile.
+- Zahlen: Immer mit Einheit (%, EUR, x) direkt in der Zelle, nicht dahinter als separater Text.`;
 
   const userPrompt = `INVESTOR-PROFIL:
-- Alter: ${alter} Jahre | Budget: ${budget} EUR/Monat | Risiko: ${risiko} | Ziel: ${ziel} | Horizont: ${horizont}
+- Alter: ${alter} | Budget: ${budget} EUR/Monat | Risiko: ${risiko} | Ziel: ${ziel} | Horizont: ${horizont}
 - Steuern: Deutschland, Abgeltungssteuer 25% + Soli
 ${zielallokation ? `- Zielallokation: ${zielallokation}` : '- Zielallokation: bitte empfehlen'}
 ${contextSection}
-
 PORTFOLIO (Stand ${heute}):
 ${pText}
 
-Erstelle einen vollständigen monatlichen Investment-Report mit folgenden Abschnitten:
+Erstelle einen prägnanten monatlichen Investment-Report. Kein Fülltext — nur Fakten, Zahlen, Empfehlungen.
 
-## 1. MARKTLAGE (Bridgewater-Stil)
-- Aktuelle Makro-Einschätzung: EZB/Fed-Zinsen, Inflation, Konjunkturphase (nutze aktuelle Daten)
-- Welche Asset-Klassen profitieren in diesem Umfeld?
-- Top-3 Risiken für dieses Portfolio diesen Monat
+## 1. MARKTLAGE
+Kompakte Tabelle (5 Zeilen max): | Indikator | Wert | Trend | Bewertung |
+Dann 3 Sätze: Konjunkturphase + welche Asset-Klassen profitieren.
+Top-3 Risiken als kompakte Tabelle: | Risiko | Wahrscheinlichkeit | Portfolio-Impact |
 
-## 2. PORTFOLIO-GESUNDHEITSCHECK
-- Sektorkonzentration tabellarisch (IST-Allokation in %)
-- Klumpenrisiken: alle Positionen >5% des Portfolios einzeln bewerten
-- Geografische Verteilung und USD-Exposure schätzen (USA % vs. Europa % vs. EM %)
-- Duplikat-Positionen bewerten
-- Liquiditätsbewertung
+## 2. PORTFOLIO-CHECK
+Zwei Tabellen:
+A) Allokation: | Asset-Klasse | EUR | % | Bewertung (1 Wort) |
+B) Klumpen (nur >5%): | Position | % | Perf. | Einschätzung (1 Satz) |
+Dann 2 Sätze zu USD-Exposure (Zahl nennen) und Duplikaten.
 
-## 2b. GEOGRAFISCHES REBALANCING (Ray Dalio — Big Debt Cycle)
-Analysiere das USD/USA-Exposure kritisch im Kontext von Dalios "Big Cycle":
-- Wie hoch ist das aktuelle USA-Exposure (direkt + indirekt via MSCI World)?
-- Bewerte das Risiko einer USD-Abschwächung und nachlassendem US-Marktdominanz
-- Gegenüberstellung: europäische Bewertungen (KGV) vs. US-Bewertungen
-- Konkrete Empfehlung: Welche europäischen ETFs eignen sich als Gegengewicht?
-  (z.B. MSCI Europe, Euro Stoxx 50, Europe ex-UK — mit TER und ISIN)
-- Strategie: Über neue Zuflüsse rebalancieren (steueroptimal) oder aktiv umschichten?
-- Zeitrahmen: Wie viele Monate à ${budget} EUR würden reichen um Ziel-Europa-Quote zu erreichen?
+## 2b. DALIO REBALANCING
+- USA-Exposure: eine Zahl (% des Portfolios), kurze Begründung warum kritisch oder OK
+- KGV-Vergleich: | Index | KGV | vs. Hist. Durchschnitt |
+- Empfohlener Europa-ETF: Name, ISIN, TER — nur der beste
+- Option A (Zuflüsse): X EUR/Monat für Y Monate
+- Option B (Umschichtung): Welche Position verkaufen, Steuerlast, Vor/Nachteil
+- Empfehlung: A oder B, warum
 
 ## 3. REBALANCING
-Tabellarisch: Asset-Klasse | IST% | SOLL% | Differenz | Handlungsbedarf
-- Konkrete Kauf-/Verkaufsempfehlungen mit Beträgen
-- Steuerliche Überlegungen NUR hier (nicht in anderen Abschnitten wiederholen)
-- WICHTIG zur Verlustverrechnung: Verluste NIEMALS als eigenständige Verkaufsempfehlung nennen. Verlustverrechnung nur als Begleithinweis wenn eine Position aus anderen Gründen (Strategie, Rebalancing) sowieso verkauft wird. Formulierung immer: "Falls du X sowieso verkaufst, dann Y gleichzeitig zur Verlustverrechnung nutzen." Nie: "Verkaufe Y zur Verlustverrechnung."
+Tabelle: | Asset-Klasse | IST% | SOLL% | Differenz | Aktion |
+Dann konkrete Empfehlungen (max. 3):
+- Was verkaufen/reduzieren: Position, Betrag, Begründung
+- Was kaufen/aufstocken: Position, Betrag, Begründung
+- Steuerhinweis NUR wenn relevant: "Falls X verkauft wird, dann Y gleichzeitig zur Verlustverrechnung" — niemals Verlustverrechnung als eigenständige Empfehlung
 
-## 4. DIESEN MONAT INVESTIEREN — ${budget} EUR
-- Konkrete Empfehlung wo die ${budget} EUR einsetzen
-- Max. 3 Positionen, mit Ticker/ISIN und Begründung
-- Indikative Einstiegszonen
+## 4. DIESEN MONAT — ${budget} EUR
+Tabelle (max. 3 Zeilen): | Position | ISIN | Betrag | Einstiegszone | Begründung |
 
 ## 5. STRESSTEST
-- Szenario A: -20% Aktienmarktkorrektur → Portfoliowert?
-- Szenario B: +20% Tech-Rally → Portfoliowert?
-- Größtes Einzelrisiko benennen
+Kompakte Tabelle: | Szenario | Portfoliowert | Veränderung |
+Zeilen: Aktuell / -20% Korrektur / +20% Tech-Rally
+Größtes Einzelrisiko: 1 Satz.
 
-## 6. ENTSCHEIDUNGS-ZUSAMMENFASSUNG
-Die Tabelle hat ZWEI Teile:
+## 6. ENTSCHEIDUNGS-SUMMARY
+Teil A — Bestehende Positionen (alle >3%):
+| Position | % | Aktion | Begründung (1 Satz) | Priorität |
+Aktion: HALTEN · AUFSTOCKEN · REDUZIEREN · VERKAUFEN — eine pro Position, keine Doppeldeutigkeit.
+Verlustverrechnung NIEMALS als Aktion — höchstens als Klammer in Begründung wenn sowieso verkauft.
 
-**Teil A — Bestehende Positionen (>3% des Portfolios):**
-Tabelle: | Position | Aktuell % | Aktion | Begründung | Priorität |
-Aktionen NUR: HALTEN · AUFSTOCKEN · REDUZIEREN · VERKAUFEN
-GENAU EINE Aktion pro Position, keine Doppeldeutigkeiten.
-NIEMALS "Verlustverrechnung" als eigenständige Aktion. Nur als Begleithinweis in der Begründungsspalte wenn sowieso verkauft wird.
+Teil B — Neue Käufe:
+| Position | ISIN | EUR/Monat | Begründung | Priorität |
 
-**Teil B — Neue Positionen (Kaufempfehlungen aus Abschnitten 2b und 4):**
-Tabelle: | Neue Position | ISIN | Betrag/Monat | Begründung | Priorität |
-Aktion immer: KAUFEN
-Hier müssen ALLE Empfehlungen aus Abschnitt 2b (Europa-Rebalancing) und Abschnitt 4 (Monatsbudget) als konkrete Zeilen erscheinen — mit Betrag in EUR.
-Beispiel: iShares Core MSCI Europe | IE00B4K48X80 | 750 EUR/Monat | Europa-Untergewichtung korrigieren (Dalio) | HOCH
+Gesamtlänge: max. 800 Wörter. Keine Einleitungssätze. Direkt mit ## 1. beginnen.`;
 
-Antworte direkt und konkret. Keine allgemeinen Aussagen. Kennzeichne am Ende: KI-Entscheidungshilfe, keine Anlageberatung.`;
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
