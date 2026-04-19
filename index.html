@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Portfolio Analyzer</title>
+<title>Portfolio Analyzer v2</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -17,6 +17,8 @@
   --gold-dim: #2a2010;
   --green: #2dd4a0;
   --green-dim: #0a2a1e;
+  --yellow: #f0c040;
+  --yellow-dim: #2a2400;
   --red: #e05555;
   --red-dim: #2a1010;
   --text: #e8e8f0;
@@ -26,235 +28,145 @@
   --sans: 'DM Sans', sans-serif;
 }
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body {
-  background: var(--bg);
-  color: var(--text);
-  font-family: var(--sans);
-  font-size: 14px;
-  line-height: 1.6;
-  min-height: 100vh;
-}
-
-/* Grid background */
+body { background: var(--bg); color: var(--text); font-family: var(--sans); font-size: 14px; line-height: 1.6; min-height: 100vh; }
 body::before {
   content: '';
-  position: fixed;
-  inset: 0;
-  background-image:
-    linear-gradient(rgba(79,142,255,0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(79,142,255,0.03) 1px, transparent 1px);
+  position: fixed; inset: 0;
+  background-image: linear-gradient(rgba(79,142,255,0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(79,142,255,0.03) 1px, transparent 1px);
   background-size: 40px 40px;
-  pointer-events: none;
-  z-index: 0;
+  pointer-events: none; z-index: 0;
 }
-
-.app { position: relative; z-index: 1; max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+.app { position: relative; z-index: 1; max-width: 980px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
 
 /* Header */
-.header { margin-bottom: 3rem; border-bottom: 1px solid var(--border); padding-bottom: 1.5rem; }
-.header-top { display: flex; align-items: baseline; gap: 1rem; margin-bottom: 0.25rem; }
-.logo { font-family: var(--mono); font-size: 11px; color: var(--accent); letter-spacing: 0.15em; text-transform: uppercase; }
-h1 { font-size: 22px; font-weight: 300; color: var(--text); letter-spacing: -0.02em; }
+.header { margin-bottom: 2.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1.5rem; }
+.logo { font-family: var(--mono); font-size: 11px; color: var(--accent); letter-spacing: 0.15em; }
+h1 { font-size: 22px; font-weight: 300; letter-spacing: -0.02em; margin: 0.25rem 0; }
 h1 span { color: var(--accent); font-weight: 500; }
-.subtitle { font-size: 12px; color: var(--text-muted); font-family: var(--mono); }
+.subtitle { font-size: 11px; color: var(--text-muted); font-family: var(--mono); }
 
-/* Panels */
-.panel {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  margin-bottom: 1rem;
-}
-.panel-header {
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-.panel-num {
-  font-family: var(--mono);
-  font-size: 10px;
-  color: var(--accent);
-  background: var(--accent-dim);
-  padding: 2px 6px;
-  border-radius: 2px;
-  letter-spacing: 0.05em;
-}
+/* Steps */
+.step { display: none; }
+.step.active { display: block; }
+
+/* Panel */
+.panel { background: var(--surface); border: 1px solid var(--border); border-radius: 4px; margin-bottom: 1rem; }
+.panel-header { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.5rem; }
+.panel-num { font-family: var(--mono); font-size: 10px; color: var(--accent); background: var(--accent-dim); padding: 2px 6px; border-radius: 2px; letter-spacing: 0.05em; }
 .panel-title { font-size: 12px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.08em; }
 .panel-body { padding: 1rem; }
 
-/* Inputs */
+/* Form */
 input[type="text"], input[type="password"], input[type="number"], select {
-  width: 100%;
-  background: var(--bg);
-  border: 1px solid var(--border-bright);
-  color: var(--text);
-  padding: 8px 12px;
-  border-radius: 3px;
-  font-family: var(--mono);
-  font-size: 13px;
-  outline: none;
-  transition: border-color 0.15s;
+  width: 100%; background: var(--bg); border: 1px solid var(--border-bright);
+  color: var(--text); padding: 8px 12px; border-radius: 3px;
+  font-family: var(--mono); font-size: 13px; outline: none; transition: border-color 0.15s;
 }
 input:focus, select:focus { border-color: var(--accent); }
 input::placeholder { color: var(--text-dim); }
 label { font-size: 11px; color: var(--text-muted); display: block; margin-bottom: 4px; font-family: var(--mono); text-transform: uppercase; letter-spacing: 0.06em; }
-
+.field { margin-bottom: 12px; }
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; }
-.field { margin-bottom: 12px; }
 
-/* File upload */
-.upload-zone {
-  border: 1px dashed var(--border-bright);
-  border-radius: 3px;
-  padding: 1.5rem;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.15s;
-  position: relative;
-}
-.upload-zone:hover { border-color: var(--accent); background: var(--accent-dim); }
+/* Upload */
+.upload-zone { border: 1px dashed var(--border-bright); border-radius: 3px; padding: 1.25rem; text-align: center; cursor: pointer; transition: all 0.15s; position: relative; margin-bottom: 8px; }
+.upload-zone:hover, .upload-zone.dragover { border-color: var(--accent); background: var(--accent-dim); }
 .upload-zone input[type="file"] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
-.upload-icon { font-family: var(--mono); font-size: 20px; color: var(--text-dim); display: block; margin-bottom: 0.5rem; }
+.upload-icon { font-family: var(--mono); font-size: 18px; color: var(--text-dim); display: block; margin-bottom: 0.4rem; }
 .upload-label { font-size: 12px; color: var(--text-muted); }
-.upload-status { margin-top: 0.5rem; font-family: var(--mono); font-size: 11px; color: var(--green); }
 
-/* Button */
-.btn-run {
-  width: 100%;
-  padding: 14px;
-  background: var(--accent);
-  color: #fff;
-  border: none;
-  border-radius: 3px;
-  font-family: var(--mono);
-  font-size: 13px;
-  font-weight: 500;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  cursor: pointer;
-  transition: all 0.15s;
-  margin-top: 1rem;
-}
-.btn-run:hover { background: #6a9fff; }
-.btn-run:disabled { background: var(--border-bright); color: var(--text-dim); cursor: not-allowed; }
+/* File list */
+.file-list { margin-top: 8px; }
+.file-item { display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 3px; margin-bottom: 4px; font-family: var(--mono); font-size: 12px; }
+.file-item .file-name { color: var(--green); }
+.file-item .file-rows { color: var(--text-muted); }
+.file-remove { color: var(--red); cursor: pointer; background: none; border: none; font-size: 14px; padding: 0 4px; }
 
-/* Status / loading */
-.status-bar {
-  display: none;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 1rem;
-  margin-bottom: 1rem;
-  font-family: var(--mono);
-  font-size: 12px;
-  color: var(--accent);
-}
+/* Buttons */
+.btn { padding: 10px 20px; border-radius: 3px; font-family: var(--mono); font-size: 12px; font-weight: 500; letter-spacing: 0.06em; cursor: pointer; border: none; transition: all 0.15s; }
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { background: #6a9fff; }
+.btn-primary:disabled { background: var(--border-bright); color: var(--text-dim); cursor: not-allowed; }
+.btn-secondary { background: var(--surface); color: var(--text-muted); border: 1px solid var(--border-bright); }
+.btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+.btn-full { width: 100%; padding: 14px; font-size: 13px; text-transform: uppercase; margin-top: 1rem; }
+.btn-row { display: flex; gap: 10px; margin-top: 1rem; }
+
+/* Mapping */
+.mapping-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+.mapping-row { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: var(--bg); border: 1px solid var(--border); border-radius: 3px; }
+.mapping-label { font-family: var(--mono); font-size: 11px; color: var(--text-muted); min-width: 120px; }
+.mapping-required { color: var(--red); margin-left: 2px; }
+.mapping-optional { color: var(--text-dim); margin-left: 2px; font-size: 10px; }
+
+/* Validation / Ampel */
+.ampel { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-radius: 3px; margin-bottom: 6px; font-size: 12px; font-family: var(--mono); }
+.ampel-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.ampel.green { background: var(--green-dim); border: 1px solid var(--green); }
+.ampel.green .ampel-dot { background: var(--green); }
+.ampel.yellow { background: var(--yellow-dim); border: 1px solid var(--yellow); }
+.ampel.yellow .ampel-dot { background: var(--yellow); }
+.ampel.red { background: var(--red-dim); border: 1px solid var(--red); }
+.ampel.red .ampel-dot { background: var(--red); }
+
+/* Preview table */
+.preview-wrap { overflow-x: auto; margin-top: 12px; }
+table { width: 100%; border-collapse: collapse; font-size: 12px; font-family: var(--mono); }
+th { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--accent); color: var(--accent); font-size: 10px; text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
+td { padding: 6px 10px; border-bottom: 1px solid var(--border); vertical-align: top; white-space: nowrap; }
+tr:last-child td { border-bottom: none; }
+.td-ok { color: var(--green); }
+.td-warn { color: var(--yellow); }
+.td-err { color: var(--red); }
+.td-muted { color: var(--text-muted); }
+
+/* Status */
+.status-bar { display: none; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; padding: 1rem; margin-bottom: 1rem; font-family: var(--mono); font-size: 12px; color: var(--accent); }
 .status-bar.visible { display: flex; align-items: center; gap: 0.75rem; }
-.spinner {
-  width: 14px; height: 14px;
-  border: 1.5px solid var(--accent-dim);
-  border-top-color: var(--accent);
-  border-radius: 50%;
-  animation: spin 0.8s linear infinite;
-  flex-shrink: 0;
-}
+.spinner { width: 14px; height: 14px; border: 1.5px solid var(--accent-dim); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* Output */
-#output {
-  display: none;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  overflow: hidden;
-}
-.output-header {
-  padding: 0.75rem 1rem;
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+#output { display: none; background: var(--surface); border: 1px solid var(--border); border-radius: 4px; overflow: hidden; }
+.output-header { padding: 0.75rem 1rem; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
 .output-meta { font-family: var(--mono); font-size: 10px; color: var(--text-muted); }
-.btn-print {
-  font-family: var(--mono);
-  font-size: 11px;
-  color: var(--accent);
-  background: var(--accent-dim);
-  border: none;
-  padding: 4px 12px;
-  border-radius: 2px;
-  cursor: pointer;
-  letter-spacing: 0.05em;
-}
-.btn-print:hover { background: var(--border-bright); }
-#report-content {
-  padding: 1.5rem;
-  font-family: var(--sans);
-  font-size: 14px;
-  line-height: 1.8;
-  color: var(--text);
-  white-space: pre-wrap;
-  word-break: break-word;
-}
-
-/* Markdown rendering */
-#report-content h1, #report-content h2 { color: var(--accent); font-weight: 500; margin: 1.5rem 0 0.5rem; font-size: 15px; letter-spacing: 0.02em; }
+.btn-print { font-family: var(--mono); font-size: 11px; color: var(--accent); background: var(--accent-dim); border: none; padding: 4px 12px; border-radius: 2px; cursor: pointer; }
+#report-content { padding: 1.5rem; font-family: var(--sans); font-size: 14px; line-height: 1.8; color: var(--text); }
+#report-content h1, #report-content h2 { color: var(--accent); font-weight: 500; margin: 1.5rem 0 0.5rem; font-size: 15px; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
 #report-content h3 { color: var(--gold); font-weight: 500; margin: 1rem 0 0.4rem; font-size: 13px; }
 #report-content strong { color: var(--text); font-weight: 500; }
-#report-content table { width: 100%; border-collapse: collapse; margin: 1rem 0; font-size: 13px; font-family: var(--mono); }
-#report-content th { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--accent); color: var(--accent); font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; }
-#report-content td { padding: 6px 10px; border-bottom: 1px solid var(--border); vertical-align: top; }
-#report-content tr:last-child td { border-bottom: none; }
-#report-content .hoch { color: var(--red); } 
-#report-content .mittel { color: var(--gold); }
-#report-content .niedrig { color: var(--green); }
+#report-content p { margin-bottom: 0.75rem; }
+#report-content table { margin: 1rem 0; }
+#report-content th { font-size: 11px; }
+#report-content td { font-size: 13px; white-space: normal; }
 #report-content code { font-family: var(--mono); background: var(--border); padding: 1px 5px; border-radius: 2px; font-size: 12px; color: var(--gold); }
-#report-content ul, #report-content ol { padding-left: 1.25rem; margin: 0.5rem 0; }
+#report-content ul, #report-content ol { padding-left: 1.25rem; margin: 0.5rem 0 0.75rem; }
 #report-content li { margin-bottom: 0.25rem; }
 
-/* Disclaimer */
-.disclaimer {
-  margin-top: 2rem;
-  padding: 0.75rem 1rem;
-  border: 1px solid var(--border);
-  border-left: 2px solid var(--gold);
-  font-size: 11px;
-  color: var(--text-muted);
-  font-family: var(--mono);
-  line-height: 1.5;
-}
-
-/* Error */
-.error-box {
-  display: none;
-  background: var(--red-dim);
-  border: 1px solid var(--red);
-  border-radius: 3px;
-  padding: 0.75rem 1rem;
-  font-family: var(--mono);
-  font-size: 12px;
-  color: var(--red);
-  margin-bottom: 1rem;
-}
+.disclaimer { margin-top: 1.5rem; padding: 0.75rem 1rem; border: 1px solid var(--border); border-left: 2px solid var(--gold); font-size: 11px; color: var(--text-muted); font-family: var(--mono); line-height: 1.5; }
+.error-box { display: none; background: var(--red-dim); border: 1px solid var(--red); border-radius: 3px; padding: 0.75rem 1rem; font-family: var(--mono); font-size: 12px; color: var(--red); margin-bottom: 1rem; }
 .error-box.visible { display: block; }
+.info-box { background: var(--accent-dim); border: 1px solid var(--accent); border-radius: 3px; padding: 0.75rem 1rem; font-family: var(--mono); font-size: 11px; color: var(--text-muted); margin-bottom: 12px; line-height: 1.6; }
+
+/* Step indicator */
+.step-indicator { display: flex; gap: 0; margin-bottom: 2rem; }
+.step-dot { flex: 1; text-align: center; padding: 8px 4px; font-family: var(--mono); font-size: 10px; color: var(--text-dim); border-bottom: 2px solid var(--border); transition: all 0.2s; }
+.step-dot.active { color: var(--accent); border-color: var(--accent); }
+.step-dot.done { color: var(--green); border-color: var(--green); }
 
 @media print {
   body { background: #fff; color: #000; }
   body::before { display: none; }
-  .panel:not(#output) { display: none; }
-  .btn-run, .btn-print, .status-bar { display: none !important; }
+  .step:not(#step-4) { display: none !important; }
+  #step-4 { display: block !important; }
+  .btn-print, .btn-row, .status-bar, .step-indicator { display: none !important; }
   #output { display: block !important; border: none; }
   #report-content { color: #000; }
-  #report-content h1, #report-content h2 { color: #1a1a6e; }
+  #report-content h1, #report-content h2 { color: #1a1a6e; border-color: #ccc; }
   #report-content h3 { color: #6e4a00; }
-  #report-content table { font-size: 11px; }
   #report-content th { color: #1a1a6e; border-color: #1a1a6e; }
-  #report-content td { border-color: #ccc; }
+  #report-content td { border-color: #ddd; white-space: normal; }
 }
 </style>
 </head>
@@ -262,212 +174,270 @@ label { font-size: 11px; color: var(--text-muted); display: block; margin-bottom
 <div class="app">
 
 <div class="header">
-  <div class="header-top">
-    <span class="logo">// portfolio.analyzer</span>
-    <h1>Monatlicher <span>Investment-Report</span></h1>
-  </div>
-  <div class="subtitle">Bridgewater · BlackRock · Goldman Sachs Methodik — powered by Claude AI</div>
+  <div class="logo">// portfolio.analyzer · v2</div>
+  <h1>Monatlicher <span>Investment-Report</span></h1>
+  <div class="subtitle">Bankenunabhängig · Bridgewater · BlackRock · Goldman Sachs · powered by Claude AI</div>
 </div>
 
-<!-- Step 1: API Key -->
-<div class="panel">
-  <div class="panel-header">
-    <span class="panel-num">01</span>
-    <span class="panel-title">Anthropic API-Key</span>
-  </div>
-  <div class="panel-body">
-    <div class="field">
-      <label>API-Key (wird nur lokal im Browser verwendet, nie gespeichert)</label>
-      <input type="password" id="api-key" placeholder="sk-ant-api03-..." autocomplete="off">
-    </div>
-    <div style="font-size:11px;color:var(--text-muted);font-family:var(--mono);">
-      Key unter console.anthropic.com erstellen · Wird ausschließlich für diese Sitzung verwendet
-    </div>
-  </div>
+<div class="step-indicator">
+  <div class="step-dot active" id="dot-1">01 · Setup</div>
+  <div class="step-dot" id="dot-2">02 · CSV Upload</div>
+  <div class="step-dot" id="dot-3">03 · Mapping &amp; Prüfung</div>
+  <div class="step-dot" id="dot-4">04 · Report</div>
 </div>
 
-<!-- Step 2: Profil -->
-<div class="panel">
-  <div class="panel-header">
-    <span class="panel-num">02</span>
-    <span class="panel-title">Investor-Profil</span>
-  </div>
-  <div class="panel-body">
-    <div class="grid3">
-      <div class="field">
-        <label>Alter</label>
-        <input type="number" id="alter" value="56" min="18" max="99">
-      </div>
-      <div class="field">
-        <label>Monatliches Budget (EUR)</label>
-        <input type="number" id="budget" value="1500" min="0">
-      </div>
-      <div class="field">
-        <label>Risikotoleranz</label>
-        <select id="risiko">
-          <option value="niedrig">Niedrig / konservativ</option>
-          <option value="mittel" selected>Mittel / ausgewogen</option>
-          <option value="hoch">Hoch / wachstumsorientiert</option>
-        </select>
-      </div>
-    </div>
-    <div class="grid2">
-      <div class="field">
-        <label>Anlageziel</label>
-        <select id="ziel">
-          <option value="Vermögensaufbau" selected>Vermögensaufbau</option>
-          <option value="Altersvorsorge">Altersvorsorge</option>
-          <option value="Kapitalerhalt">Kapitalerhalt</option>
-          <option value="Einkommensgenerierung">Einkommensgenerierung (Dividenden)</option>
-        </select>
-      </div>
-      <div class="field">
-        <label>Anlagehorizont</label>
-        <select id="horizont">
-          <option value="kurz (1-3 Jahre)">Kurz (1–3 Jahre)</option>
-          <option value="mittel (3-7 Jahre)">Mittel (3–7 Jahre)</option>
-          <option value="lang (7+ Jahre)" selected>Lang (7+ Jahre)</option>
-        </select>
-      </div>
-    </div>
-    <div class="field">
-      <label>Zielallokation (optional — leer lassen für automatische Empfehlung)</label>
-      <input type="text" id="zielallokation" placeholder="z.B. 60% Aktien, 20% Anleihen, 10% Gold, 10% Cash">
-    </div>
-  </div>
-</div>
-
-<!-- Step 3: CSV Upload -->
-<div class="panel">
-  <div class="panel-header">
-    <span class="panel-num">03</span>
-    <span class="panel-title">Depot-Daten (CSV-Upload)</span>
-  </div>
-  <div class="panel-body">
-    <div class="grid2">
-      <div>
-        <label style="margin-bottom:8px;">Depot 1 — comdirect</label>
-        <div class="upload-zone">
-          <input type="file" id="file-cmd" accept=".csv" onchange="handleFile('cmd', this)">
-          <span class="upload-icon">[CSV]</span>
-          <div class="upload-label">comdirect Depotübersicht</div>
-          <div class="upload-status" id="status-cmd"></div>
-        </div>
-      </div>
-      <div>
-        <label style="margin-bottom:8px;">Depot 2 — Commerzbank (optional)</label>
-        <div class="upload-zone">
-          <input type="file" id="file-cbk" accept=".csv" onchange="handleFile('cbk', this)">
-          <span class="upload-icon">[CSV]</span>
-          <div class="upload-label">Commerzbank Report-CSV</div>
-          <div class="upload-status" id="status-cbk"></div>
-        </div>
-      </div>
-    </div>
-    <div style="margin-top:10px;font-size:11px;color:var(--text-muted);font-family:var(--mono);">
-      comdirect: Depot → Tabelle → Export CSV &nbsp;|&nbsp; Commerzbank: Depot → Report → CSV-Download
-    </div>
-  </div>
-</div>
-
-<!-- Run -->
 <div class="error-box" id="error-box"></div>
-<div class="status-bar" id="status-bar">
-  <div class="spinner"></div>
-  <span id="status-text">Analyse wird vorbereitet...</span>
-</div>
 
-<button class="btn-run" id="btn-run" onclick="runAnalysis()">
-  → ANALYSE STARTEN
-</button>
+<!-- ═══════════════════════════════════════════════════════════ STEP 1: Setup -->
+<div class="step active" id="step-1">
 
-<!-- Output -->
-<div id="output">
-  <div class="output-header">
-    <span class="output-meta" id="output-meta">—</span>
-    <button class="btn-print" onclick="window.print()">DRUCKEN / PDF</button>
+  <div class="panel">
+    <div class="panel-header"><span class="panel-num">01</span><span class="panel-title">Anthropic API-Key</span></div>
+    <div class="panel-body">
+      <div class="field">
+        <label>API-Key (bleibt lokal im Browser, wird nie gespeichert oder übertragen)</label>
+        <input type="password" id="api-key" placeholder="sk-ant-api03-..." autocomplete="off">
+      </div>
+      <div style="font-size:11px;color:var(--text-muted);font-family:var(--mono);">
+        Key erstellen unter console.anthropic.com → API Keys → Create Key
+      </div>
+    </div>
   </div>
-  <div id="report-content"></div>
-  <div class="disclaimer">
-    HINWEIS: Dieser Report ist eine KI-gestützte Entscheidungshilfe und stellt keine Anlageberatung im Sinne des WpHG dar.
-    Alle Empfehlungen ohne Gewähr. Steuerliche Angaben sind unverbindlich. Konsultieren Sie vor wesentlichen
-    Anlageentscheidungen einen zugelassenen Finanzberater. Stand: <span id="report-date"></span>
+
+  <div class="panel">
+    <div class="panel-header"><span class="panel-num">02</span><span class="panel-title">Investor-Profil</span></div>
+    <div class="panel-body">
+      <div class="grid3">
+        <div class="field">
+          <label>Alter</label>
+          <input type="number" id="alter" value="56" min="18" max="99">
+        </div>
+        <div class="field">
+          <label>Monatliches Budget (EUR)</label>
+          <input type="number" id="budget" value="1500" min="0">
+        </div>
+        <div class="field">
+          <label>Risikotoleranz</label>
+          <select id="risiko">
+            <option value="niedrig">Niedrig / konservativ</option>
+            <option value="mittel" selected>Mittel / ausgewogen</option>
+            <option value="hoch">Hoch / wachstumsorientiert</option>
+          </select>
+        </div>
+      </div>
+      <div class="grid2">
+        <div class="field">
+          <label>Anlageziel</label>
+          <select id="ziel">
+            <option value="Vermögensaufbau" selected>Vermögensaufbau</option>
+            <option value="Altersvorsorge">Altersvorsorge</option>
+            <option value="Kapitalerhalt">Kapitalerhalt</option>
+            <option value="Einkommensgenerierung">Einkommensgenerierung (Dividenden)</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Anlagehorizont</label>
+          <select id="horizont">
+            <option value="kurz (1-3 Jahre)">Kurz (1–3 Jahre)</option>
+            <option value="mittel (3-7 Jahre)">Mittel (3–7 Jahre)</option>
+            <option value="lang (7+ Jahre)" selected>Lang (7+ Jahre)</option>
+          </select>
+        </div>
+      </div>
+      <div class="field">
+        <label>Gewünschte Zielallokation (leer = automatisch empfohlen)</label>
+        <input type="text" id="zielallokation" placeholder="z.B. 60% Aktien, 20% Anleihen, 10% Gold, 10% Cash">
+      </div>
+    </div>
+  </div>
+
+  <button class="btn btn-primary btn-full" onclick="goToStep2()">→ WEITER: CSV HOCHLADEN</button>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════ STEP 2: Upload -->
+<div class="step" id="step-2">
+
+  <div class="panel">
+    <div class="panel-header"><span class="panel-num">01</span><span class="panel-title">CSV-Dateien hochladen</span></div>
+    <div class="panel-body">
+      <div class="info-box">
+        Lade eine oder mehrere CSV-Dateien hoch — von beliebigen Banken oder Brokern.<br>
+        Im nächsten Schritt erkennst und prüfst du das Mapping der Spalten.<br>
+        Unterstützte Trennzeichen: Semikolon (;) · Komma (,) · Tab
+      </div>
+
+      <div class="upload-zone" id="drop-zone">
+        <input type="file" id="file-input" accept=".csv,.txt" multiple onchange="handleFiles(this.files)">
+        <span class="upload-icon">[CSV]</span>
+        <div class="upload-label">CSV-Datei(en) hier ablegen oder klicken</div>
+        <div style="font-size:11px;color:var(--text-dim);margin-top:4px;">Mehrere Dateien gleichzeitig möglich (Strg+Klick)</div>
+      </div>
+
+      <div class="file-list" id="file-list"></div>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="goToStep(1)">← Zurück</button>
+    <button class="btn btn-primary" id="btn-to-mapping" style="flex:1" onclick="goToMapping()" disabled>→ WEITER: SPALTEN PRÜFEN</button>
   </div>
 </div>
 
+<!-- ═══════════════════════════════════════════════════════════ STEP 3: Mapping -->
+<div class="step" id="step-3">
+
+  <div class="panel">
+    <div class="panel-header"><span class="panel-num">01</span><span class="panel-title">Spalten-Mapping</span></div>
+    <div class="panel-body">
+      <div class="info-box" id="mapping-info"></div>
+      <div id="mapping-fields"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header"><span class="panel-num">02</span><span class="panel-title">Validierung</span></div>
+    <div class="panel-body">
+      <div id="validation-result"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-header"><span class="panel-num">03</span><span class="panel-title">Vorschau (erste 5 Positionen)</span></div>
+    <div class="panel-body">
+      <div class="preview-wrap">
+        <table id="preview-table">
+          <thead><tr><th>Bezeichnung</th><th>Typ (erkannt)</th><th>Stückzahl</th><th>Kurs</th><th>Wert EUR</th><th>Kaufkurs</th><th>Plausibel?</th></tr></thead>
+          <tbody id="preview-body"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-secondary" onclick="goToStep(2)">← Zurück</button>
+    <button class="btn btn-primary" id="btn-confirm" style="flex:1" onclick="runAnalysis()" disabled>→ MAPPING BESTÄTIGEN &amp; ANALYSE STARTEN</button>
+  </div>
 </div>
+
+<!-- ═══════════════════════════════════════════════════════════ STEP 4: Report -->
+<div class="step" id="step-4">
+  <div class="status-bar" id="status-bar">
+    <div class="spinner"></div>
+    <span id="status-text">Analyse wird vorbereitet...</span>
+  </div>
+
+  <div id="output">
+    <div class="output-header">
+      <span class="output-meta" id="output-meta">—</span>
+      <button class="btn-print" onclick="window.print()">DRUCKEN / PDF</button>
+    </div>
+    <div id="report-content"></div>
+    <div class="disclaimer">
+      HINWEIS: KI-gestützte Entscheidungshilfe · Keine Anlageberatung im Sinne des WpHG · Alle Empfehlungen ohne Gewähr · Steuerliche Angaben unverbindlich · Stand: <span id="report-date"></span>
+    </div>
+  </div>
+
+  <div class="btn-row" style="margin-top:1rem;">
+    <button class="btn btn-secondary" onclick="goToStep(1)">← Neue Analyse</button>
+  </div>
+</div>
+
+</div><!-- /app -->
 
 <script>
-const portfolioData = { cmd: null, cbk: null };
+// ═══════════════════════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════════════════════
+const state = {
+  files: [],        // [{name, raw, rows, headers, sep}]
+  mapping: {},      // {bezeichnung, typ, stueck, kurs, wert, kaufkurs, isin, wkn, depot}
+  normalized: [],   // final position objects
+  currentStep: 1
+};
 
-function handleFile(depot, input) {
-  const file = input.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    const text = e.target.result;
-    const parsed = depot === 'cmd' ? parseComdirect(text) : parseCommerzbank(text);
-    portfolioData[depot] = parsed;
-    const statusEl = document.getElementById('status-' + depot);
-    statusEl.textContent = parsed.length + ' Positionen geladen';
-  };
-  reader.readAsText(file, depot === 'cbk' ? 'UTF-8' : 'ISO-8859-1');
+const FIELDS = [
+  { key: 'bezeichnung', label: 'Bezeichnung / Name',    required: true  },
+  { key: 'wert',        label: 'Wert in EUR',           required: true  },
+  { key: 'kurs',        label: 'Aktueller Kurs',        required: true  },
+  { key: 'stueck',      label: 'Stückzahl / Bestand',   required: true  },
+  { key: 'kaufkurs',    label: 'Kaufkurs / Einstand',   required: false },
+  { key: 'typ',         label: 'Typ (ETF/Aktie/...)',   required: false },
+  { key: 'isin',        label: 'ISIN',                  required: false },
+  { key: 'wkn',         label: 'WKN',                   required: false },
+];
+
+// ═══════════════════════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════════════════════
+function goToStep(n) {
+  document.querySelectorAll('.step').forEach(s => s.classList.remove('active'));
+  document.getElementById('step-' + n).classList.add('active');
+  document.querySelectorAll('.step-dot').forEach((d, i) => {
+    d.classList.remove('active', 'done');
+    if (i + 1 < n) d.classList.add('done');
+    if (i + 1 === n) d.classList.add('active');
+  });
+  state.currentStep = n;
+  hideError();
+  window.scrollTo(0, 0);
 }
 
-function parseComdirect(text) {
-  const lines = text.split('\n').map(l => l.trim()).filter(l => l);
-  const positions = [];
-  let inData = false;
-  for (const line of lines) {
-    const cols = parseCsvLine(line, ';');
-    if (!inData) {
-      if (cols[0] === 'Stück / Nominale' || cols[0] === 'Stück/ Nom.') { inData = true; continue; }
-      continue;
-    }
-    if (!cols[0] || !cols[0].match(/^\d/)) continue;
-    const stueck = parseGerman(cols[0]);
-    const name = (cols[1] || '').replace(/"/g,'').trim();
-    const wkn = (cols[3] || '').replace(/"/g,'').trim();
-    const typ = (cols[4] || '').replace(/"/g,'').trim();
-    const kurs = parseGerman(cols[6]);
-    const wert = parseGerman(cols[9]);
-    const kaufkurs = parseGerman(cols[15]);
-    const kaufwert = parseGerman(cols[16]);
-    if (!name || isNaN(wert)) continue;
-    positions.push({ depot: 'comdirect', name, wkn, isin: '', typ, stueck, kurs, wert, kaufkurs, kaufwert,
-      diffPct: cols[11] ? cols[11].replace(/"/g,'').trim() : '' });
+function goToStep2() {
+  const key = document.getElementById('api-key').value.trim();
+  if (!key.startsWith('sk-')) { showError('Bitte einen gültigen Anthropic API-Key eingeben.'); return; }
+  goToStep(2);
+}
+
+// ═══════════════════════════════════════════════════════════
+// FILE HANDLING
+// ═══════════════════════════════════════════════════════════
+function handleFiles(fileList) {
+  Array.from(fileList).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = e => {
+      const raw = e.target.result;
+      const parsed = parseCSV(raw, file.name);
+      state.files.push({ name: file.name, raw, ...parsed });
+      renderFileList();
+      document.getElementById('btn-to-mapping').disabled = state.files.length === 0;
+    };
+    // Try UTF-8 first, fallback handled in parseCSV
+    reader.readAsText(file, 'UTF-8');
+  });
+}
+
+function parseCSV(raw, filename) {
+  // Detect separator
+  const firstLine = raw.split('\n')[0];
+  const sep = firstLine.includes(';') ? ';' : firstLine.includes('\t') ? '\t' : ',';
+
+  // Split lines, skip BOM
+  const lines = raw.replace(/^\uFEFF/, '').split(/\r?\n/).map(l => l.trim()).filter(l => l);
+
+  // Find header row (first row with multiple non-empty cells)
+  let headerIdx = 0;
+  for (let i = 0; i < Math.min(15, lines.length); i++) {
+    const cols = splitLine(lines[i], sep);
+    if (cols.length >= 3 && cols.filter(c => c.trim()).length >= 3) { headerIdx = i; break; }
   }
-  return positions;
-}
 
-function parseCommerzbank(text) {
-  const lines = text.split('\n').map(l => l.trim()).filter(l => l);
-  const positions = [];
-  let inData = false;
-  for (const line of lines) {
-    const cols = parseCsvLine(line, ';');
-    if (!inData) {
-      if (cols[0] === 'Position' && cols[1] === 'Bezeichnung') { inData = true; continue; }
-      continue;
-    }
-    if (!cols[0] || !cols[0].match(/^\d+$/)) continue;
-    const name = (cols[1] || '').replace(/"/g,'').trim();
-    const wkn = (cols[2] || '').replace(/"/g,'').trim();
-    const isin = (cols[3] || '').replace(/"/g,'').trim();
-    const stueck = parseGerman(cols[6]);
-    const kaufkurs = parseGerman(cols[7]);
-    const kaufwert = parseGerman(cols[10]);
-    const kurs = parseGerman(cols[12]);
-    const wert = parseGerman(cols[18]);
-    const diffPct = (cols[22] || '').replace(/"/g,'').trim();
-    if (!name || isNaN(wert)) continue;
-    const typ = guessTyp(name, isin);
-    positions.push({ depot: 'Commerzbank', name, wkn, isin, typ, stueck, kurs, wert, kaufkurs, kaufwert, diffPct });
+  const headers = splitLine(lines[headerIdx], sep).map(h => h.replace(/"/g,'').trim());
+  const rows = [];
+  for (let i = headerIdx + 1; i < lines.length; i++) {
+    const cols = splitLine(lines[i], sep);
+    if (cols.length < 2) continue;
+    const row = {};
+    headers.forEach((h, idx) => { row[h] = (cols[idx] || '').replace(/"/g,'').trim(); });
+    // Skip footer/summary rows
+    const vals = Object.values(row).filter(v => v);
+    if (vals.length < 2) continue;
+    rows.push(row);
   }
-  return positions;
+
+  return { headers, rows, sep };
 }
 
-function parseCsvLine(line, sep) {
+function splitLine(line, sep) {
   const result = [];
   let cur = '', inQ = false;
   for (let i = 0; i < line.length; i++) {
@@ -480,114 +450,283 @@ function parseCsvLine(line, sep) {
   return result;
 }
 
+function renderFileList() {
+  const el = document.getElementById('file-list');
+  el.innerHTML = state.files.map((f, i) => `
+    <div class="file-item">
+      <span class="file-name">${f.name}</span>
+      <span class="file-rows">${f.rows.length} Zeilen · ${f.headers.length} Spalten · Trenner: "${f.sep}"</span>
+      <button class="file-remove" onclick="removeFile(${i})">✕</button>
+    </div>
+  `).join('');
+}
+
+function removeFile(i) {
+  state.files.splice(i, 1);
+  renderFileList();
+  document.getElementById('btn-to-mapping').disabled = state.files.length === 0;
+}
+
+// ═══════════════════════════════════════════════════════════
+// AUTO-MAPPING
+// ═══════════════════════════════════════════════════════════
+const MAPPING_HINTS = {
+  bezeichnung: ['bezeichnung','name','beschreibung','wertpapier','titel','position','papier','security'],
+  wert:        ['wert in eur','wert eur','marktwert','depotwert','kurswert','wert','value'],
+  kurs:        ['akt. kurs','aktueller kurs','kurs','preis','price','kurs eur'],
+  stueck:      ['stück','stueck','nominale','bestand','anzahl','menge','quantity','stück / nominale'],
+  kaufkurs:    ['kaufkurs','einstandskurs','einstand','buy price','einstandskurs eur'],
+  typ:         ['typ','type','art','kategorie','category','asset type'],
+  isin:        ['isin'],
+  wkn:         ['wkn','valor'],
+};
+
+function autoMap(headers) {
+  const mapping = {};
+  const lh = headers.map(h => h.toLowerCase());
+  for (const [field, hints] of Object.entries(MAPPING_HINTS)) {
+    for (const hint of hints) {
+      const idx = lh.findIndex(h => h.includes(hint));
+      if (idx >= 0) { mapping[field] = headers[idx]; break; }
+    }
+  }
+  return mapping;
+}
+
+function goToMapping() {
+  if (state.files.length === 0) { showError('Bitte mindestens eine CSV-Datei hochladen.'); return; }
+
+  // Collect all headers across files
+  const allHeaders = [...new Set(state.files.flatMap(f => f.headers))];
+  const autoMapped = autoMap(allHeaders);
+  state.mapping = { ...autoMapped };
+
+  goToStep(3);
+  renderMappingFields(allHeaders);
+  updateValidation();
+}
+
+function renderMappingFields(headers) {
+  const optionsList = ['— nicht vorhanden —', ...headers].map(h => `<option value="${h}">${h}</option>`).join('');
+
+  const fileInfo = state.files.map(f => `${f.name} (${f.rows.length} Pos.)`).join(' · ');
+  document.getElementById('mapping-info').textContent =
+    `Dateien: ${fileInfo} · Erkannte Spalten: ${headers.length} · Bitte prüfen und ggf. korrigieren.`;
+
+  const container = document.getElementById('mapping-fields');
+  container.innerHTML = '<div class="mapping-grid">' + FIELDS.map(f => {
+    const current = state.mapping[f.key] || '';
+    const opts = ['— nicht vorhanden —', ...headers].map(h =>
+      `<option value="${h}" ${h === current ? 'selected' : ''}>${h}</option>`
+    ).join('');
+    return `
+      <div class="mapping-row">
+        <span class="mapping-label">${f.label}${f.required ? '<span class="mapping-required"> *</span>' : '<span class="mapping-optional"> opt.</span>'}</span>
+        <select style="flex:1" onchange="updateMapping('${f.key}', this.value)">${opts}</select>
+      </div>
+    `;
+  }).join('') + '</div>';
+}
+
+function updateMapping(field, value) {
+  if (value === '— nicht vorhanden —') delete state.mapping[field];
+  else state.mapping[field] = value;
+  updateValidation();
+}
+
+// ═══════════════════════════════════════════════════════════
+// VALIDATION + PREVIEW
+// ═══════════════════════════════════════════════════════════
+function updateValidation() {
+  const normalized = normalizeAll();
+  state.normalized = normalized;
+
+  const checks = runChecks(normalized);
+  renderValidation(checks);
+  renderPreview(normalized.slice(0, 5));
+
+  const hasErrors = checks.some(c => c.level === 'red');
+  document.getElementById('btn-confirm').disabled = hasErrors || normalized.length === 0;
+}
+
+function runChecks(positions) {
+  const checks = [];
+  const n = positions.length;
+
+  // Pflichtfelder
+  const hasBezeichnung = state.mapping.bezeichnung;
+  const hasWert = state.mapping.wert;
+  const hasKurs = state.mapping.kurs;
+  const hasStueck = state.mapping.stueck;
+
+  if (!hasBezeichnung) checks.push({ level: 'red', text: 'Bezeichnung nicht gemappt — Pflichtfeld' });
+  else checks.push({ level: 'green', text: `Bezeichnung gemappt → "${state.mapping.bezeichnung}"` });
+
+  if (!hasWert) checks.push({ level: 'red', text: 'Wert in EUR nicht gemappt — Pflichtfeld' });
+  else checks.push({ level: 'green', text: `Wert in EUR gemappt → "${state.mapping.wert}"` });
+
+  if (!hasKurs) checks.push({ level: 'red', text: 'Aktueller Kurs nicht gemappt — Pflichtfeld' });
+  else checks.push({ level: 'green', text: `Kurs gemappt → "${state.mapping.kurs}"` });
+
+  if (!hasStueck) checks.push({ level: 'red', text: 'Stückzahl nicht gemappt — Pflichtfeld' });
+  else checks.push({ level: 'green', text: `Stückzahl gemappt → "${state.mapping.stueck}"` });
+
+  if (n === 0) { checks.push({ level: 'red', text: 'Keine Positionen erkannt — Mapping prüfen' }); return checks; }
+
+  // Plausibilitätsprüfung: Stück × Kurs ≈ Wert?
+  const plausible = positions.filter(p => {
+    if (!p.stueck || !p.kurs || !p.wert) return false;
+    const calc = p.stueck * p.kurs;
+    const ratio = calc / p.wert;
+    return ratio > 0.5 && ratio < 2.0;
+  });
+  const plausiblePct = Math.round((plausible.length / n) * 100);
+
+  if (plausiblePct >= 70) checks.push({ level: 'green', text: `Plausibilitätsprüfung: ${plausiblePct}% der Positionen — Stück × Kurs ≈ Wert ✓` });
+  else if (plausiblePct >= 40) checks.push({ level: 'yellow', text: `Plausibilitätsprüfung: nur ${plausiblePct}% plausibel — Kurs/Wert-Mapping prüfen` });
+  else checks.push({ level: 'red', text: `Plausibilitätsprüfung: nur ${plausiblePct}% plausibel — Spalten wahrscheinlich falsch gemappt` });
+
+  // Gesamtwert
+  const total = positions.reduce((s, p) => s + (p.wert || 0), 0);
+  if (total > 1000) checks.push({ level: 'green', text: `Gesamtwert: ${fmtEur(total)} · ${n} Positionen erkannt` });
+  else checks.push({ level: 'yellow', text: `Gesamtwert sehr niedrig (${fmtEur(total)}) — Wert-Spalte korrekt?` });
+
+  // Optionale Felder
+  if (!state.mapping.isin && !state.mapping.wkn) checks.push({ level: 'yellow', text: 'Weder ISIN noch WKN gemappt — Klassifikation wird per Name gemacht' });
+  else checks.push({ level: 'green', text: `Identifier gemappt: ${state.mapping.isin ? 'ISIN' : ''}${state.mapping.wkn ? ' WKN' : ''}` });
+
+  if (!state.mapping.kaufkurs) checks.push({ level: 'yellow', text: 'Kaufkurs nicht gemappt — Performance-Analyse eingeschränkt' });
+  else checks.push({ level: 'green', text: `Kaufkurs gemappt → "${state.mapping.kaufkurs}"` });
+
+  return checks;
+}
+
+function renderValidation(checks) {
+  document.getElementById('validation-result').innerHTML = checks.map(c => `
+    <div class="ampel ${c.level}">
+      <div class="ampel-dot"></div>
+      <span>${c.text}</span>
+    </div>
+  `).join('');
+}
+
+function renderPreview(positions) {
+  const tbody = document.getElementById('preview-body');
+  tbody.innerHTML = positions.map(p => {
+    const calc = p.stueck && p.kurs ? p.stueck * p.kurs : null;
+    const ratio = calc && p.wert ? calc / p.wert : null;
+    const ok = ratio && ratio > 0.5 && ratio < 2.0;
+    const plClass = !ratio ? 'td-muted' : ok ? 'td-ok' : 'td-err';
+    const plText = !ratio ? 'n/a' : ok ? '✓ OK' : `✗ ${ratio.toFixed(2)}x`;
+    return `
+      <tr>
+        <td>${p.bezeichnung || '—'}</td>
+        <td class="${p.typ_auto === 'Anleihen' ? 'td-ok' : ''}">${p.typ_display}</td>
+        <td class="td-muted">${p.stueck ? fmtNum(p.stueck) : '—'}</td>
+        <td class="td-muted">${p.kurs ? fmtNum(p.kurs) : '—'}</td>
+        <td>${p.wert ? fmtEur(p.wert) : '—'}</td>
+        <td class="td-muted">${p.kaufkurs ? fmtNum(p.kaufkurs) : '—'}</td>
+        <td class="${plClass}">${plText}</td>
+      </tr>
+    `;
+  }).join('');
+}
+
+// ═══════════════════════════════════════════════════════════
+// NORMALIZATION
+// ═══════════════════════════════════════════════════════════
+function normalizeAll() {
+  const positions = [];
+  for (const file of state.files) {
+    for (const row of file.rows) {
+      const p = normalizeRow(row, file.name);
+      if (p && p.bezeichnung && (p.wert > 0 || p.kurs > 0)) positions.push(p);
+    }
+  }
+  return positions;
+}
+
+function normalizeRow(row, filename) {
+  const get = key => state.mapping[key] ? (row[state.mapping[key]] || '') : '';
+  const bezeichnung = get('bezeichnung').replace(/"/g,'').trim();
+  if (!bezeichnung) return null;
+
+  const wert     = parseGerman(get('wert'));
+  const kurs     = parseGerman(get('kurs'));
+  const stueck   = parseGerman(get('stueck'));
+  const kaufkurs = parseGerman(get('kaufkurs'));
+  const isin     = get('isin').replace(/"/g,'').trim();
+  const wkn      = get('wkn').replace(/"/g,'').trim();
+  const typRaw   = get('typ').replace(/"/g,'').trim();
+
+  const typ_auto = klassifiziere(bezeichnung, wkn, isin, typRaw);
+  const typ_display = typRaw ? `${typRaw} → ${typ_auto}` : typ_auto;
+
+  return { bezeichnung, wert: isNaN(wert) ? 0 : wert, kurs: isNaN(kurs) ? 0 : kurs,
+    stueck: isNaN(stueck) ? 0 : stueck, kaufkurs: isNaN(kaufkurs) ? 0 : kaufkurs,
+    isin, wkn, typRaw, typ_auto, typ_display, depot: filename };
+}
+
 function parseGerman(s) {
   if (!s) return NaN;
-  s = s.replace(/"/g,'').replace(/\s/g,'').replace(/\./g,'').replace(',','.');
+  s = String(s).replace(/"/g,'').replace(/\s/g,'');
+  // Handle German number format (1.234,56) and US format (1,234.56)
+  if (s.match(/^\d{1,3}(\.\d{3})+(,\d+)?$/)) s = s.replace(/\./g,'').replace(',','.');
+  else s = s.replace(/[^\d,.-]/g,'').replace(',','.');
   return parseFloat(s);
 }
 
-function guessTyp(name, isin) {
-  const n = name.toUpperCase();
-  if (n.includes('ETF') || n.includes('INDEX')) return 'ETF';
-  if (n.includes('FONDS') || n.includes('FDS') || n.includes('INV') || n.includes('ACC') || n.includes('EQU')) return 'Fonds';
-  if (n.includes('ZERTIF') || n.includes('CERT')) return 'Zertif';
-  return 'Aktie';
+// ═══════════════════════════════════════════════════════════
+// CLASSIFICATION
+// ═══════════════════════════════════════════════════════════
+const ANLEIHEN_WKN  = new Set(['A0RGEN','LYX0Z3','LYX0XL','A0HGV1','628949','A0Q4RZ','926452','DWS214']);
+const ANLEIHEN_ISIN = new Set(['AT0000996681','LU1984220373','LU1650491282','DE000A0Q4RZ9']);
+const ANLEIHEN_KW   = ['RENT','BOND','GO.BD','GOV BD','GILT','GOVT','TREASURY','INFL ETF','CORP BO','ANLEI','0-1Y','5-10','G.G.','AGGREGATE','DURATION','PFAND'];
+const ROHSTOFF_KW   = ['GOLD','SILBER','SILVER','COMMODITY','ROHSTOFF','XETRA-GOLD','COINSHARE','CRYPTO','BITCOIN','DIGITAL','EUWAX'];
+const IMMOB_KW      = ['REAL EST','REIT','IMMOB','PROPERTY','R.EST'];
+const CRYPTO_KW     = ['COINSHARE','BITCOIN','CRYPTO','DIGITAL SEC'];
+
+function klassifiziere(name, wkn, isin, typRaw) {
+  const n = (name || '').toUpperCase();
+  const w = (wkn  || '').toUpperCase();
+  const i = (isin || '').toUpperCase();
+  const t = (typRaw || '').toLowerCase();
+
+  if (ANLEIHEN_WKN.has(w) || ANLEIHEN_ISIN.has(i) || ANLEIHEN_KW.some(k => n.includes(k))) return 'Anleihen';
+  if (CRYPTO_KW.some(k => n.includes(k))) return 'Rohstoffe/Krypto';
+  if (ROHSTOFF_KW.some(k => n.includes(k))) return 'Rohstoffe/Gold';
+  if (IMMOB_KW.some(k => n.includes(k))) return 'Immobilien';
+  if (t === 'aktie') return 'Einzelaktien';
+  if (t === 'zertif' || t === 'zertifikat') return 'Zertifikate';
+  if (t === 'etf' || t === 'fonds') return 'Aktien-ETF/Fonds';
+  return 'Aktien-ETF/Fonds';
 }
 
-// Klassifikation anhand von Name + WKN/ISIN
-const ANLEIHEN_KEYWORDS = ['RENT','BOND','GO.BD','GOV','GILT','GOVT','TREASURY','INFL','CORP BO','ANLEI','RENTEN','LAUFZEI','0-1Y','5-10','G.G.'];
-const ANLEIHEN_WKNS = ['A0RGEN','LYX0Z3','LYX0XL','A0HGV1','628949','A0Q4RZ','AT0000996681','LU1984220373','LU1650491282'];
-const ROHSTOFF_KEYWORDS = ['GOLD','SILBER','SILVER','COMMODITY','ROHSTOFF','RESOURCE','OIL','ENERGY','XETRA-GOLD','COINSHARE','CRYPTO','BITCOIN','DIGITAL'];
-const IMMOB_KEYWORDS = ['REAL EST','REIT','IMMOB','PROPERTY'];
+// ═══════════════════════════════════════════════════════════
+// ANALYSIS
+// ═══════════════════════════════════════════════════════════
+async function runAnalysis() {
+  goToStep(4);
+  showStatus('Portfolio wird klassifiziert und analysiert...');
+  document.getElementById('output').style.display = 'none';
 
-function klassifiziere(pos) {
-  const n = pos.name.toUpperCase();
-  const w = (pos.wkn || '').toUpperCase();
-  const i = (pos.isin || '').toUpperCase();
-  if (ANLEIHEN_WKNS.includes(w) || ANLEIHEN_KEYWORDS.some(k => n.includes(k))) return 'Anleihen';
-  if (ROHSTOFF_KEYWORDS.some(k => n.includes(k))) return 'Rohstoffe/Krypto';
-  if (IMMOB_KEYWORDS.some(k => n.includes(k))) return 'Immobilien';
-  if (pos.typ === 'Aktie') return 'Einzelaktien';
-  if (pos.typ === 'ETF' || pos.typ === 'Fonds') return 'Aktien-ETF/Fonds';
-  if (pos.typ === 'Zertif') return 'Zertifikate';
-  return 'Sonstige';
-}
-
-function buildPortfolioSummary() {
-  const all = [...(portfolioData.cmd || []), ...(portfolioData.cbk || [])];
-  if (all.length === 0) return null;
-
-  const total = all.reduce((s, p) => s + (p.wert || 0), 0);
-  const kauftotal = all.reduce((s, p) => s + (p.kaufwert || 0), 0);
-
-  // Klassifikation
+  const positions = state.normalized;
+  const total = positions.reduce((s, p) => s + p.wert, 0);
+  const kauftotal = positions.reduce((s, p) => s + (p.kaufkurs && p.stueck ? p.kaufkurs * p.stueck : 0), 0);
   const klassen = {};
-  for (const p of all) {
-    const k = klassifiziere(p);
-    klassen[k] = (klassen[k] || 0) + p.wert;
-  }
+  for (const p of positions) { klassen[p.typ_auto] = (klassen[p.typ_auto] || 0) + p.wert; }
+  const sorted = [...positions].sort((a,b) => b.wert - a.wert);
 
-  // Top Positionen
-  const sorted = [...all].sort((a,b) => b.wert - a.wert).slice(0, 15);
-
-  // Doppelte Positionen
+  // Duplikate finden
   const byName = {};
-  for (const p of all) {
-    const key = p.name.replace(/\s+/g,' ').trim().substring(0, 20);
+  for (const p of positions) {
+    const key = p.bezeichnung.replace(/\s+/g,' ').trim().substring(0, 18).toUpperCase();
     if (!byName[key]) byName[key] = [];
     byName[key].push(p);
   }
   const duplikate = Object.values(byName).filter(ps => ps.length > 1);
 
-  return { all, total, kauftotal, klassen, sorted, duplikate, depots: {
-    cmd: (portfolioData.cmd || []).length,
-    cbk: (portfolioData.cbk || []).length
-  }};
-}
-
-function formatSummaryForPrompt(s) {
-  const pct = (v) => ((v / s.total) * 100).toFixed(1) + '%';
-  const eur = (v) => v.toLocaleString('de-DE', {minimumFractionDigits:0, maximumFractionDigits:0}) + ' EUR';
-
-  let out = '';
-  out += `GESAMTPORTFOLIO: ${eur(s.total)} (Kaufwert: ${eur(s.kauftotal)}, Gesamtrendite: ${(((s.total-s.kauftotal)/s.kauftotal)*100).toFixed(1)}%)\n`;
-  out += `Depots: comdirect (${s.depots.cmd} Pos.) + Commerzbank (${s.depots.cbk} Pos.) = ${s.all.length} Positionen gesamt\n\n`;
-
-  out += `ASSET-ALLOKATION (KORREKT KLASSIFIZIERT):\n`;
-  for (const [k, v] of Object.entries(s.klassen).sort((a,b) => b[1]-a[1])) {
-    out += `  ${k}: ${eur(v)} (${pct(v)})\n`;
-  }
-
-  out += `\nTOP 15 POSITIONEN (nach Marktwert):\n`;
-  for (const p of s.sorted) {
-    const perf = p.kaufkurs && p.kurs ? (((p.kurs - p.kaufkurs)/p.kaufkurs)*100).toFixed(1)+'%' : p.diffPct || 'n/a';
-    out += `  [${p.depot}] ${p.name} (${p.wkn||p.isin}) | ${eur(p.wert)} | ${pct(p.wert)} | Typ: ${p.typ} | Perf: ${perf}\n`;
-  }
-
-  if (s.duplikate.length > 0) {
-    out += `\nDOPPELTE POSITIONEN (beide Depots):\n`;
-    for (const ps of s.duplikate) {
-      const gesamt = ps.reduce((a,p) => a+p.wert, 0);
-      out += `  ${ps[0].name}: ${ps.map(p=>`${p.depot} ${eur(p.wert)}`).join(' + ')} = ${eur(gesamt)} (${pct(gesamt)})\n`;
-    }
-  }
-
-  return out;
-}
-
-async function runAnalysis() {
-  const apiKey = document.getElementById('api-key').value.trim();
-  if (!apiKey || !apiKey.startsWith('sk-')) {
-    showError('Bitte einen gültigen Anthropic API-Key eingeben (beginnt mit sk-ant-...)');
-    return;
-  }
-
-  const summary = buildPortfolioSummary();
-  if (!summary) {
-    showError('Bitte mindestens eine CSV-Datei hochladen.');
-    return;
-  }
-
+  const heute = new Date().toLocaleDateString('de-DE', {day:'2-digit',month:'2-digit',year:'numeric'});
   const alter = document.getElementById('alter').value;
   const budget = document.getElementById('budget').value;
   const risiko = document.getElementById('risiko').value;
@@ -595,73 +734,87 @@ async function runAnalysis() {
   const horizont = document.getElementById('horizont').value;
   const zielallokation = document.getElementById('zielallokation').value.trim();
 
-  const portfolioText = formatSummaryForPrompt(summary);
-  const heute = new Date().toLocaleDateString('de-DE', {day:'2-digit',month:'2-digit',year:'numeric'});
+  // Build portfolio text
+  let pText = `GESAMTPORTFOLIO: ${fmtEur(total)}`;
+  if (kauftotal > 0) pText += ` (Kaufwert ca. ${fmtEur(kauftotal)}, Rendite: ${(((total-kauftotal)/kauftotal)*100).toFixed(1)}%)`;
+  pText += `\nDepots: ${[...new Set(positions.map(p=>p.depot))].join(', ')}\nPositionen gesamt: ${positions.length}\n\n`;
 
-  const systemPrompt = `Du bist ein erfahrener Portfolio-Stratege mit Expertise aus den Prinzipien von Bridgewater (Ray Dalio), BlackRock und Goldman Sachs. Du erstellst präzise, umsetzbare monatliche Investment-Reports auf Deutsch. Heutige Datum: ${heute}. Deine Analyse basiert auf den tatsächlich bereitgestellten Portfoliodaten. Du kennst die aktuelle Marktlage (Zinsen, Inflation, Geopolitik) und beziehst sie konkret in deine Empfehlungen ein. Antworte strukturiert mit Markdown-Überschriften und Tabellen.`;
+  pText += `ASSET-ALLOKATION (sorgfältig klassifiziert — Anleihen-ETFs anhand Name/WKN/ISIN korrekt eingeordnet):\n`;
+  for (const [k,v] of Object.entries(klassen).sort((a,b)=>b[1]-a[1])) {
+    pText += `  ${k}: ${fmtEur(v)} (${((v/total)*100).toFixed(1)}%)\n`;
+  }
 
-  const userPrompt = `Du bist ein erfahrener Portfolio-Stratege mit Expertise aus den Prinzipien von Bridgewater (Ray Dalio), BlackRock und Goldman Sachs.
+  pText += `\nTOP POSITIONEN:\n`;
+  for (const p of sorted.slice(0, 15)) {
+    const anteil = ((p.wert/total)*100).toFixed(1);
+    const perf = p.kaufkurs && p.kurs && p.kaufkurs > 0
+      ? `${(((p.kurs-p.kaufkurs)/p.kaufkurs)*100).toFixed(1)}%` : 'n/a';
+    pText += `  [${p.depot.replace(/\.[^.]+$/,'')}] ${p.bezeichnung}`;
+    if (p.wkn || p.isin) pText += ` (${p.wkn||p.isin})`;
+    pText += ` | Klasse: ${p.typ_auto} | ${fmtEur(p.wert)} (${anteil}%) | Perf: ${perf}\n`;
+  }
 
-INVESTOR-PROFIL:
-- Alter: ${alter} Jahre
-- Monatliches Investitionsbudget: ${budget} EUR
-- Risikotoleranz: ${risiko}
-- Anlageziel: ${ziel}
-- Anlagehorizont: ${horizont}
-- Kontotyp: Wertpapierdepot (Deutschland, Abgeltungssteuer 25% + Soli)
-${zielallokation ? `- Gewünschte Zielallokation: ${zielallokation}` : '- Zielallokation: bitte empfehlen basierend auf Profil'}
+  if (duplikate.length > 0) {
+    pText += `\nDOPPELTE POSITIONEN (mehrere Depots):\n`;
+    for (const ps of duplikate) {
+      const ges = ps.reduce((a,p)=>a+p.wert,0);
+      pText += `  ${ps[0].bezeichnung}: ${fmtEur(ges)} (${((ges/total)*100).toFixed(1)}%)\n`;
+    }
+  }
 
-PORTFOLIO-DATEN (Stand ${heute}):
-${portfolioText}
+  const systemPrompt = `Du bist ein erfahrener Portfolio-Stratege mit Expertise aus den Prinzipien von Bridgewater (Ray Dalio), BlackRock und Goldman Sachs. Du erstellst präzise, umsetzbare monatliche Investment-Reports auf Deutsch. Datum: ${heute}. Antworte mit Markdown-Überschriften und Tabellen.`;
 
-Führe jetzt eine vollständige monatliche Investment-Analyse durch:
+  const userPrompt = `INVESTOR-PROFIL:
+- Alter: ${alter} Jahre | Budget: ${budget} EUR/Monat | Risiko: ${risiko} | Ziel: ${ziel} | Horizont: ${horizont}
+- Steuern: Deutschland, Abgeltungssteuer 25% + Soli
+${zielallokation ? `- Zielallokation: ${zielallokation}` : '- Zielallokation: bitte empfehlen'}
+
+PORTFOLIO (Stand ${heute}):
+${pText}
+
+Erstelle einen vollständigen monatlichen Investment-Report mit folgenden Abschnitten:
 
 ## 1. MARKTLAGE (Bridgewater-Stil)
-- Aktuelle Makro-Einschätzung: Zinsen (EZB/Fed), Inflation, Konjunkturphase Europa/USA
+- Aktuelle Makro-Einschätzung: EZB/Fed-Zinsen, Inflation, Konjunkturphase (nutze aktuelle Daten)
 - Welche Asset-Klassen profitieren in diesem Umfeld?
-- Top-3-Risiken für dieses Portfolio diesen Monat
+- Top-3 Risiken für dieses Portfolio diesen Monat
 
 ## 2. PORTFOLIO-GESUNDHEITSCHECK
-- Sektorkonzentration mit prozentualer Aufschlüsselung (WICHTIG: Anleihen-ETFs wie A0RGEN korrekt als Anleihen klassifizieren, nicht als Aktien-ETF)
-- Klumpenrisiken: Einzeltitel über 5% des Portfolios
-- Geografische Verteilung und Währungsrisiken (USD-Exposure schätzen)
-- Duplikat-Positionen in beiden Depots bewerten
+- Sektorkonzentration tabellarisch (IST-Allokation in %)
+- Klumpenrisiken: alle Positionen >5% des Portfolios einzeln bewerten
+- Geografische Verteilung und USD-Exposure schätzen
+- Duplikat-Positionen bewerten
 - Liquiditätsbewertung
 
-## 3. REBALANCING-ENTSCHEIDUNG
-- Ist-Allokation vs. empfohlene Soll-Allokation (tabellarisch)
-- Weicht das Portfolio mehr als 5% von der Zielallokation ab?
-- Konkrete Kauf-/Verkaufsempfehlungen mit geschätzten Beträgen
-- Steuerliche Überlegungen (welche Gewinne sind steuerlich relevant?)
+## 3. REBALANCING
+Tabellarisch: Asset-Klasse | IST% | SOLL% | Differenz | Handlungsbedarf
+- Konkrete Kauf-/Verkaufsempfehlungen mit Beträgen
+- Steuerliche Überlegungen NUR hier (nicht in anderen Abschnitten wiederholen)
 
-## 4. DIESEN MONAT INVESTIEREN (Goldman-Stil)
-- Wo sollen die ${budget} EUR diesen Monat eingesetzt werden?
-- Top-3 Positionen aufstocken ODER neue Position öffnen?
-- Spezifische ETF/Aktien-Empfehlung mit Ticker und Begründung
-- Indikative Einstiegspreis-Zone (kein verbindlicher Kurs)
+## 4. DIESEN MONAT INVESTIEREN — ${budget} EUR
+- Konkrete Empfehlung wo die ${budget} EUR einsetzen
+- Max. 3 Positionen, mit Ticker/ISIN und Begründung
+- Indikative Einstiegszonen
 
 ## 5. STRESSTEST
-- Wie würde das Portfolio bei -20% Marktkorrektur aussehen? (Anleihen und Gold separat bewerten)
-- Größtes Einzelrisiko aktuell?
-- Positiver Stresstest: +20% Tech-Rally — welche Positionen profitieren am meisten?
+- Szenario A: -20% Aktienmarktkorrektur → Portfoliowert?
+- Szenario B: +20% Tech-Rally → Portfoliowert?
+- Größtes Einzelrisiko benennen
 
 ## 6. ENTSCHEIDUNGS-ZUSAMMENFASSUNG
-Erstelle eine klare Tabelle:
-| Aktion | Position | Betrag | Begründung | Priorität |
+WICHTIG: Für JEDE Position >3% des Portfolios GENAU EINE klare Aktion angeben.
+Tabelle: | Position | Aktuell % | Aktion | Begründung | Priorität |
+Aktionen NUR: HALTEN · KAUFEN · AUFSTOCKEN · REDUZIEREN · VERKAUFEN
+Keine Doppeldeutigkeiten — eine Position, eine Aktion.
 
-Antworte präzise und direkt. Keine allgemeinen Aussagen — nur konkrete, umsetzbare Empfehlungen für diesen Monat. Kennzeichne am Ende deutlich: Dies ist eine KI-gestützte Entscheidungshilfe, keine Anlageberatung.`;
-
-  showStatus('Portfolio wird analysiert — Claude lädt aktuelle Marktdaten...');
-  document.getElementById('btn-run').disabled = true;
-  document.getElementById('output').style.display = 'none';
-  hideError();
+Antworte direkt und konkret. Keine allgemeinen Aussagen. Kennzeichne am Ende: KI-Entscheidungshilfe, keine Anlageberatung.`;
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'x-api-key': apiKey,
+        'x-api-key': document.getElementById('api-key').value.trim(),
         'anthropic-version': '2023-06-01',
         'anthropic-dangerous-direct-browser-access': 'true'
       },
@@ -670,10 +823,7 @@ Antworte präzise und direkt. Keine allgemeinen Aussagen — nur konkrete, umset
         max_tokens: 4000,
         system: systemPrompt,
         messages: [{ role: 'user', content: userPrompt }],
-        tools: [{
-          type: 'web_search_20250305',
-          name: 'web_search'
-        }]
+        tools: [{ type: 'web_search_20250305', name: 'web_search' }]
       })
     });
 
@@ -683,73 +833,88 @@ Antworte präzise und direkt. Keine allgemeinen Aussagen — nur konkrete, umset
     }
 
     const data = await response.json();
-
-    // Alle Text-Blöcke zusammenführen
-    const text = data.content
-      .filter(b => b.type === 'text')
-      .map(b => b.text)
-      .join('\n');
+    const text = data.content.filter(b => b.type === 'text').map(b => b.text).join('\n');
 
     hideStatus();
-    document.getElementById('btn-run').disabled = false;
-    showReport(text, summary, heute);
+    document.getElementById('output-meta').textContent =
+      `Report: ${heute} · ${positions.length} Positionen · ${fmtEur(total)}`;
+    document.getElementById('report-date').textContent = heute;
+    document.getElementById('report-content').innerHTML = renderMarkdown(text);
+    document.getElementById('output').style.display = 'block';
+    document.getElementById('output').scrollIntoView({ behavior: 'smooth' });
 
-  } catch (err) {
+  } catch(err) {
     hideStatus();
-    document.getElementById('btn-run').disabled = false;
-    if (err.message.includes('401') || err.message.includes('auth')) {
-      showError('API-Key ungültig oder abgelaufen. Bitte Key prüfen.');
-    } else if (err.message.includes('CORS') || err.message.includes('fetch')) {
-      showError('Netzwerkfehler. Stelle sicher, dass die Seite über HTTPS läuft (GitHub Pages / Netlify).');
-    } else {
-      showError('Fehler: ' + err.message);
-    }
+    goToStep(3);
+    if (err.message.includes('401')) showError('API-Key ungültig. Bitte in Schritt 1 prüfen.');
+    else showError('Fehler: ' + err.message);
   }
 }
 
+// ═══════════════════════════════════════════════════════════
+// MARKDOWN RENDERER
+// ═══════════════════════════════════════════════════════════
 function renderMarkdown(text) {
-  return text
-    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
-    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
-    .replace(/^# (.+)$/gm, '<h1>$1</h1>')
-    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-    .replace(/`(.+?)`/g, '<code>$1</code>')
-    .replace(/^\|(.+)\|$/gm, (match) => {
-      const cells = match.split('|').slice(1,-1);
-      const isHeader = false;
-      return '<tr>' + cells.map(c => `<td>${c.trim()}</td>`).join('') + '</tr>';
-    })
-    .replace(/(<tr>.*<\/tr>\n)+/gs, (match) => {
-      const rows = match.trim().split('\n');
-      const header = rows[0].replace(/<td>/g,'<th>').replace(/<\/td>/g,'</th>');
-      const rest = rows.slice(2).join('\n');
-      return `<table>${header}${rest}</table>`;
-    })
-    .replace(/^- (.+)$/gm, '<li>$1</li>')
-    .replace(/(<li>.*<\/li>\n)+/gs, m => `<ul>${m}</ul>`)
-    .replace(/\n\n/g, '</p><p>')
-    .replace(/^(?!<[huplti])/gm, '')
-    .replace(/<p><\/p>/g, '');
+  const lines = text.split('\n');
+  let html = '';
+  let inTable = false, inList = false;
+
+  for (let i = 0; i < lines.length; i++) {
+    let line = lines[i];
+    line = line.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    line = line.replace(/`(.+?)`/g, '<code>$1</code>');
+
+    if (line.startsWith('## ')) {
+      if (inTable) { html += '</table>'; inTable = false; }
+      if (inList)  { html += '</ul>'; inList = false; }
+      html += `<h2>${line.slice(3)}</h2>`;
+    } else if (line.startsWith('### ')) {
+      if (inTable) { html += '</table>'; inTable = false; }
+      if (inList)  { html += '</ul>'; inList = false; }
+      html += `<h3>${line.slice(4)}</h3>`;
+    } else if (line.startsWith('# ')) {
+      html += `<h1>${line.slice(2)}</h1>`;
+    } else if (line.startsWith('|')) {
+      if (!inTable) { html += '<table>'; inTable = true; }
+      const cells = line.split('|').slice(1,-1).map(c => c.trim());
+      const isDivider = cells.every(c => c.match(/^[-:]+$/));
+      if (isDivider) continue;
+      const isHeader = !lines.slice(0,i).some(l => l.startsWith('|')) ||
+        (lines[i+1] && lines[i+1].match(/^\|[-| :]+\|$/));
+      const tag = (lines[i-1] === '' || i === 0) && lines[i+1] && lines[i+1].match(/^\|[-| :]+\|$/) ? 'th' : 'td';
+      html += '<tr>' + cells.map(c => `<${tag}>${c}</${tag}>`).join('') + '</tr>';
+    } else if (line.startsWith('- ') || line.startsWith('* ')) {
+      if (inTable) { html += '</table>'; inTable = false; }
+      if (!inList) { html += '<ul>'; inList = true; }
+      html += `<li>${line.slice(2)}</li>`;
+    } else {
+      if (inTable) { html += '</table>'; inTable = false; }
+      if (inList)  { html += '</ul>'; inList = false; }
+      if (line.trim()) html += `<p>${line}</p>`;
+    }
+  }
+  if (inTable) html += '</table>';
+  if (inList)  html += '</ul>';
+  return html;
 }
 
-function showReport(text, summary, heute) {
-  document.getElementById('output').style.display = 'block';
-  document.getElementById('output-meta').textContent =
-    `Report generiert am ${heute} · ${summary.all.length} Positionen · ${(summary.total).toLocaleString('de-DE',{maximumFractionDigits:0})} EUR Gesamtwert`;
-  document.getElementById('report-date').textContent = heute;
-
-  const content = document.getElementById('report-content');
-  content.innerHTML = renderMarkdown(text);
-  document.getElementById('output').scrollIntoView({ behavior: 'smooth' });
-}
-
-function showStatus(msg) {
-  document.getElementById('status-text').textContent = msg;
-  document.getElementById('status-bar').classList.add('visible');
-}
-function hideStatus() { document.getElementById('status-bar').classList.remove('visible'); }
-function showError(msg) { const e = document.getElementById('error-box'); e.textContent = msg; e.classList.add('visible'); }
+// ═══════════════════════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════════════════════
+function fmtEur(v) { return v.toLocaleString('de-DE', {minimumFractionDigits:0, maximumFractionDigits:0}) + ' EUR'; }
+function fmtNum(v) { return Number(v).toLocaleString('de-DE', {minimumFractionDigits:0, maximumFractionDigits:2}); }
+function showError(msg) { const e = document.getElementById('error-box'); e.textContent = msg; e.classList.add('visible'); window.scrollTo(0,0); }
 function hideError() { document.getElementById('error-box').classList.remove('visible'); }
+function showStatus(msg) { document.getElementById('status-text').textContent = msg; document.getElementById('status-bar').classList.add('visible'); }
+function hideStatus() { document.getElementById('status-bar').classList.remove('visible'); }
+
+// Drag & Drop
+const dz = document.getElementById('drop-zone');
+if (dz) {
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('dragover'); });
+  dz.addEventListener('dragleave', () => dz.classList.remove('dragover'));
+  dz.addEventListener('drop', e => { e.preventDefault(); dz.classList.remove('dragover'); handleFiles(e.dataTransfer.files); });
+}
 </script>
 </body>
 </html>
