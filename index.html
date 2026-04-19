@@ -198,8 +198,10 @@ tr:last-child td { border-bottom: none; }
         <label>API-Key (bleibt lokal im Browser, wird nie gespeichert oder übertragen)</label>
         <input type="password" id="api-key" placeholder="sk-ant-api03-..." autocomplete="off">
       </div>
-      <div style="font-size:11px;color:var(--text-muted);font-family:var(--mono);">
-        Key erstellen unter console.anthropic.com → API Keys → Create Key
+      <div style="font-size:11px;color:var(--text-muted);font-family:var(--mono);line-height:1.7;">
+        Noch kein Key? <a href="https://console.anthropic.com" target="_blank" style="color:var(--accent);text-decoration:none;">console.anthropic.com</a> → Account erstellen → "API Keys" → "Create Key"<br>
+        Neuen Accounts gibt Anthropic kostenloses Startguthaben (~5 USD) — ein Analyse-Lauf kostet ca. 3–5 Cent.<br>
+        Der Key bleibt ausschließlich lokal in deinem Browser. Er wird nicht gespeichert oder übertragen.
       </div>
     </div>
   </div>
@@ -814,9 +816,19 @@ Erstelle einen vollständigen monatlichen Investment-Report mit folgenden Abschn
 ## 2. PORTFOLIO-GESUNDHEITSCHECK
 - Sektorkonzentration tabellarisch (IST-Allokation in %)
 - Klumpenrisiken: alle Positionen >5% des Portfolios einzeln bewerten
-- Geografische Verteilung und USD-Exposure schätzen
+- Geografische Verteilung und USD-Exposure schätzen (USA % vs. Europa % vs. EM %)
 - Duplikat-Positionen bewerten
 - Liquiditätsbewertung
+
+## 2b. GEOGRAFISCHES REBALANCING (Ray Dalio — Big Debt Cycle)
+Analysiere das USD/USA-Exposure kritisch im Kontext von Dalios "Big Cycle":
+- Wie hoch ist das aktuelle USA-Exposure (direkt + indirekt via MSCI World)?
+- Bewerte das Risiko einer USD-Abschwächung und nachlassendem US-Marktdominanz
+- Gegenüberstellung: europäische Bewertungen (KGV) vs. US-Bewertungen
+- Konkrete Empfehlung: Welche europäischen ETFs eignen sich als Gegengewicht?
+  (z.B. MSCI Europe, Euro Stoxx 50, Europe ex-UK — mit TER und ISIN)
+- Strategie: Über neue Zuflüsse rebalancieren (steueroptimal) oder aktiv umschichten?
+- Zeitrahmen: Wie viele Monate à ${budget} EUR würden reichen um Ziel-Europa-Quote zu erreichen?
 
 ## 3. REBALANCING
 Tabellarisch: Asset-Klasse | IST% | SOLL% | Differenz | Handlungsbedarf
