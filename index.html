@@ -384,6 +384,7 @@ const state = {
   mapping: {},            // {bezeichnung, typ, stueck, kurs, wert, kaufkurs, isin, wkn, depot}
   normalized: [],         // final position objects
   contextSuggestions: [], // KI-Vorschläge für Schritt 3b
+  contextActive: [],      // welche Vorschläge aktiv sind
   currentStep: 1
 };
 
@@ -631,34 +632,59 @@ Maximal 8 Einträge. Nur die wichtigsten Positionen.`;
 
 function renderContextFields(suggestions) {
   const typLabels = {
-    anker: { label: 'Stabilitätsanker', color: 'var(--green)' },
-    risiko: { label: 'Klumpenrisiko', color: 'var(--red)' },
-    steuer: { label: 'Steuer', color: 'var(--gold)' },
-    strategie: { label: 'Strategie', color: 'var(--accent)' }
+    anker:     { label: 'Stabilitätsanker', color: 'var(--green)'  },
+    risiko:    { label: 'Klumpenrisiko',    color: 'var(--red)'    },
+    steuer:    { label: 'Steuer',           color: 'var(--gold)'   },
+    strategie: { label: 'Strategie',        color: 'var(--accent)' }
   };
 
   state.contextSuggestions = suggestions;
+  state.contextActive = suggestions.map(() => true); // alle aktiv
 
-  document.getElementById('context-fields').innerHTML = suggestions.map((s, i) => {
-    const t = typLabels[s.typ] || typLabels.strategie;
-    return `
-      <div style="margin-bottom:10px;">
-        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-          <span style="font-family:var(--mono);font-size:11px;color:var(--text-muted);">${s.position}</span>
-          <span style="font-size:10px;padding:1px 6px;border-radius:2px;background:${t.color}22;color:${t.color};font-family:var(--mono);">${t.label}</span>
+  function renderAll() {
+    document.getElementById('context-fields').innerHTML = suggestions.map((s, i) => {
+      const t = typLabels[s.typ] || typLabels.strategie;
+      const active = state.contextActive[i];
+      return `
+        <div id="ctx-row-${i}" style="margin-bottom:8px;display:flex;align-items:center;gap:8px;${!active ? 'opacity:0.35;' : ''}">
+          <div style="flex:1;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+              <span style="font-family:var(--mono);font-size:11px;color:var(--text-muted);">${s.position}</span>
+              <span style="font-size:10px;padding:1px 6px;border-radius:2px;background:${t.color}22;color:${t.color};font-family:var(--mono);">${t.label}</span>
+              ${!active ? '<span style="font-size:10px;color:var(--text-dim);font-family:var(--mono);">— wird nicht berücksichtigt</span>' : ''}
+            </div>
+            <input type="text" id="ctx-${i}" value="${s.vorschlag.replace(/"/g,'&quot;')}"
+              ${!active ? 'disabled' : ''}
+              style="width:100%;background:var(--bg);border:1px solid ${active ? 'var(--border-bright)' : 'var(--border)'};color:${active ? 'var(--text)' : 'var(--text-dim)'};padding:8px 12px;border-radius:3px;font-family:var(--mono);font-size:12px;outline:none;">
+          </div>
+          <button onclick="toggleContext(${i})" title="${active ? 'Aus Kontext entfernen' : 'In Kontext aufnehmen'}"
+            style="flex-shrink:0;width:28px;height:28px;border-radius:50%;border:1px solid ${active ? 'var(--red)' : 'var(--green)'};background:transparent;color:${active ? 'var(--red)' : 'var(--green)'};cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;">
+            ${active ? '✕' : '+'}
+          </button>
         </div>
-        <input type="text" id="ctx-${i}" value="${s.vorschlag.replace(/"/g,'&quot;')}"
-          style="width:100%;background:var(--bg);border:1px solid var(--border-bright);color:var(--text);padding:8px 12px;border-radius:3px;font-family:var(--mono);font-size:12px;outline:none;">
-      </div>
-    `;
-  }).join('');
+      `;
+    }).join('') +
+    `<div style="margin-top:8px;font-size:11px;color:var(--text-dim);font-family:var(--mono);">
+      ✕ = aus Kontext entfernen (neutrale Bewertung) &nbsp;·&nbsp; + = wieder aufnehmen
+     </div>`;
+    document.getElementById('context-fields').innerHTML += ''; // force re-render
+  }
+
+  window.toggleContext = function(i) {
+    state.contextActive[i] = !state.contextActive[i];
+    renderAll();
+  };
+
+  renderAll();
 }
 
 function getContextText() {
   const suggestions = state.contextSuggestions || [];
+  const active = state.contextActive || [];
   const fields = suggestions.map((s, i) => {
+    if (!active[i]) return null; // explizit entfernt → kein Kontext
     const el = document.getElementById('ctx-' + i);
-    const val = el ? el.value.trim() : s.vorschlag;
+    const val = el ? el.value.trim() : '';
     return val ? `- ${s.position}: ${val}` : null;
   }).filter(Boolean);
 
