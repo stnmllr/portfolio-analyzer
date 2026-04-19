@@ -419,8 +419,8 @@ function handleFiles(fileList) {
 }
 
 function parseCSV(raw, filename) {
-  // Detect separator
-  const firstLine = raw.split('\n')[0];
+  // Detect separator — use first non-empty line
+  const firstLine = raw.split('\n').map(l => l.trim()).find(l => l.length > 0) || '';
   const sep = firstLine.includes(';') ? ';' : firstLine.includes('\t') ? '\t' : ',';
 
   // Split lines, skip BOM
