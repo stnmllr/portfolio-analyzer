@@ -243,7 +243,13 @@ tr:last-child td { border-bottom: none; }
     <div class="panel-body">
       <div class="field">
         <label>API-Key (bleibt lokal im Browser, wird nie gespeichert oder übertragen)</label>
-        <input type="password" id="api-key" placeholder="sk-ant-api03-..." autocomplete="off">
+        <div style="display:flex;gap:8px;align-items:center;">
+          <input type="password" id="api-key" placeholder="sk-ant-api03-..." autocomplete="off" style="flex:1;">
+          <button type="button" onclick="toggleKeyVisibility()" id="key-toggle"
+            style="flex-shrink:0;padding:8px 12px;background:var(--bg);border:1px solid var(--border-bright);color:var(--text-muted);border-radius:3px;cursor:pointer;font-family:var(--mono);font-size:11px;white-space:nowrap;">
+            anzeigen
+          </button>
+        </div>
       </div>
       <div style="font-size:11px;color:var(--text-muted);font-family:var(--mono);line-height:1.7;">
         Noch kein Key? <a href="https://console.anthropic.com" target="_blank" style="color:var(--accent);text-decoration:none;">console.anthropic.com</a> → Account erstellen → "API Keys" → "Create Key"<br>
