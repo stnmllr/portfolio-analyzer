@@ -639,52 +639,62 @@ function renderContextFields(suggestions) {
   };
 
   state.contextSuggestions = suggestions;
-  state.contextActive = suggestions.map(() => true); // alle aktiv
+  state.contextActive = suggestions.map(() => true);
+  state.contextValues = suggestions.map(s => s.vorschlag);
 
-  function renderAll() {
-    document.getElementById('context-fields').innerHTML = suggestions.map((s, i) => {
-      const t = typLabels[s.typ] || typLabels.strategie;
-      const active = state.contextActive[i];
-      return `
-        <div id="ctx-row-${i}" style="margin-bottom:8px;display:flex;align-items:center;gap:8px;${!active ? 'opacity:0.35;' : ''}">
-          <div style="flex:1;">
-            <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
-              <span style="font-family:var(--mono);font-size:11px;color:var(--text-muted);">${s.position}</span>
-              <span style="font-size:10px;padding:1px 6px;border-radius:2px;background:${t.color}22;color:${t.color};font-family:var(--mono);">${t.label}</span>
-              ${!active ? '<span style="font-size:10px;color:var(--text-dim);font-family:var(--mono);">— wird nicht berücksichtigt</span>' : ''}
-            </div>
-            <input type="text" id="ctx-${i}" value="${s.vorschlag.replace(/"/g,'&quot;')}"
-              ${!active ? 'disabled' : ''}
-              style="width:100%;background:var(--bg);border:1px solid ${active ? 'var(--border-bright)' : 'var(--border)'};color:${active ? 'var(--text)' : 'var(--text-dim)'};padding:8px 12px;border-radius:3px;font-family:var(--mono);font-size:12px;outline:none;">
+  document.getElementById('context-fields').innerHTML = suggestions.map((s, i) => {
+    const t = typLabels[s.typ] || typLabels.strategie;
+    return `
+      <div id="ctx-row-${i}" style="margin-bottom:8px;display:flex;align-items:center;gap:8px;">
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+            <span style="font-family:var(--mono);font-size:11px;color:var(--text-muted);">${s.position}</span>
+            <span style="font-size:10px;padding:1px 6px;border-radius:2px;background:${t.color}22;color:${t.color};font-family:var(--mono);">${t.label}</span>
+            <span id="ctx-off-${i}" style="font-size:10px;color:var(--text-dim);font-family:var(--mono);display:none;">— wird nicht berücksichtigt</span>
           </div>
-          <button onclick="toggleContext(${i})" title="${active ? 'Aus Kontext entfernen' : 'In Kontext aufnehmen'}"
-            style="flex-shrink:0;width:28px;height:28px;border-radius:50%;border:1px solid ${active ? 'var(--red)' : 'var(--green)'};background:transparent;color:${active ? 'var(--red)' : 'var(--green)'};cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;">
-            ${active ? '✕' : '+'}
-          </button>
+          <input type="text" id="ctx-${i}"
+            value="${s.vorschlag.replace(/"/g,'&quot;')}"
+            oninput="state.contextValues[${i}] = this.value"
+            style="width:100%;background:var(--bg);border:1px solid var(--border-bright);color:var(--text);padding:8px 12px;border-radius:3px;font-family:var(--mono);font-size:12px;outline:none;transition:border-color 0.15s,color 0.15s;">
         </div>
-      `;
-    }).join('') +
-    `<div style="margin-top:8px;font-size:11px;color:var(--text-dim);font-family:var(--mono);">
-      ✕ = aus Kontext entfernen (neutrale Bewertung) &nbsp;·&nbsp; + = wieder aufnehmen
-     </div>`;
-    document.getElementById('context-fields').innerHTML += ''; // force re-render
-  }
+        <button id="ctx-btn-${i}" onclick="toggleContext(${i})" title="Aus Kontext entfernen"
+          style="flex-shrink:0;width:28px;height:28px;border-radius:50%;border:1px solid var(--red);background:transparent;color:var(--red);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;">✕</button>
+      </div>
+    `;
+  }).join('') +
+  `<div style="margin-top:8px;font-size:11px;color:var(--text-dim);font-family:var(--mono);">
+    ✕ = aus Kontext entfernen (neutrale Bewertung) &nbsp;·&nbsp; + = wieder aufnehmen
+  </div>`;
 
   window.toggleContext = function(i) {
-    state.contextActive[i] = !state.contextActive[i];
-    renderAll();
-  };
+    const inp = document.getElementById('ctx-' + i);
+    if (inp) state.contextValues[i] = inp.value;
 
-  renderAll();
+    state.contextActive[i] = !state.contextActive[i];
+    const active = state.contextActive[i];
+
+    document.getElementById('ctx-row-' + i).style.opacity = active ? '1' : '0.35';
+    const btn = document.getElementById('ctx-btn-' + i);
+    btn.style.borderColor = active ? 'var(--red)'  : 'var(--green)';
+    btn.style.color       = active ? 'var(--red)'  : 'var(--green)';
+    btn.title             = active ? 'Aus Kontext entfernen' : 'In Kontext aufnehmen';
+    btn.textContent       = active ? '✕' : '+';
+    inp.disabled          = !active;
+    inp.style.borderColor = active ? 'var(--border-bright)' : 'var(--border)';
+    inp.style.color       = active ? 'var(--text)' : 'var(--text-dim)';
+    document.getElementById('ctx-off-' + i).style.display = active ? 'none' : 'inline';
+  };
 }
 
 function getContextText() {
   const suggestions = state.contextSuggestions || [];
-  const active = state.contextActive || [];
+  const active      = state.contextActive || [];
+  const values      = state.contextValues || [];
   const fields = suggestions.map((s, i) => {
-    if (!active[i]) return null; // explizit entfernt → kein Kontext
-    const el = document.getElementById('ctx-' + i);
-    const val = el ? el.value.trim() : '';
+    if (!active[i]) return null;
+    // contextValues hat den letzten Stand (via oninput), Input als Fallback
+    const el  = document.getElementById('ctx-' + i);
+    const val = (el ? el.value : (values[i] || '')).trim();
     return val ? `- ${s.position}: ${val}` : null;
   }).filter(Boolean);
 
