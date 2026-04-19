@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Portfolio Analyzer v5.1</title>
+<title>Portfolio Analyzer v5.2</title>
 <!-- system fonts -->
 <meta http-equiv="X-Content-Type-Options" content="nosniff">
 <style>
@@ -178,7 +178,7 @@ tr:last-child td { border-bottom: none; }
 <div class="app">
 
 <div class="header">
-  <div class="logo">// portfolio.analyzer · v5.1</div>
+  <div class="logo">// portfolio.analyzer · v5.2</div>
   <h1>Monatlicher <span>Investment-Report</span></h1>
   <div class="subtitle">Monatliche KI-Portfolioanalyse · Bankenunabhängig · Bridgewater · BlackRock · Goldman Sachs</div>
 </div>
@@ -194,7 +194,7 @@ tr:last-child td { border-bottom: none; }
 <div class="error-box" id="error-box"></div>
 
 <!-- ═══════════════════════════════════════════════════════════ STEP 1: Setup -->
-<div class="step active" id="step-1">
+<div class="step active" id="step-1" >
 
   <div class="panel">
     <div class="panel-header"><span class="panel-num">00</span><span class="panel-title">Was ist dieses Tool?</span></div>
@@ -209,10 +209,11 @@ tr:last-child td { border-bottom: none; }
       <div style="border-top:1px solid var(--border);padding-top:1rem;">
         <details style="font-size:11px;font-family:var(--mono);">
           <summary style="color:var(--text-dim);cursor:pointer;user-select:none;letter-spacing:0.06em;list-style:none;">
-            <span style="color:var(--accent);">v5.1</span> · Changelog anzeigen
+            <span style="color:var(--accent);">v5.2</span> · Changelog anzeigen
           </summary>
           <div style="line-height:2;color:var(--text-muted);margin-top:8px;">
-            <span style="color:var(--accent);">v5.1</span> · UI-Vereinfachung · Encoding-Fix · Prompt-Schärfung<br>
+            <span style="color:var(--accent);">v5.2</span> · Bugfix: fehlendes &lt;/div&gt; · Button type=button · Verlustverrechnungs-Fix<br>
+            <span style="color:var(--text-dim);">v5.1</span> · UI-Vereinfachung · Changelog kollabiert · Feature-Karten entfernt<br>
             <span style="color:var(--text-dim);">v4</span> · Kontext-Check · ✕/+ Toggle · Onboarding<br>
             <span style="color:var(--text-dim);">v3</span> · Dalio Big Cycle · Europa-Rebalancing<br>
             <span style="color:var(--text-dim);">v2</span> · Bankenunabhängig · Multi-CSV · Mapping<br>
@@ -290,7 +291,8 @@ tr:last-child td { border-bottom: none; }
     </div>
   </div>
 
-  <button class="btn btn-primary btn-full" onclick="goToStep2()">→ WEITER: CSV HOCHLADEN</button>
+  <button type="button" class="btn btn-primary btn-full" onclick="goToStep2()">→ WEITER: CSV HOCHLADEN</button>
+</div>
 </div>
 
 <!-- ═══════════════════════════════════════════════════════════ STEP 2: Upload -->
@@ -317,8 +319,8 @@ tr:last-child td { border-bottom: none; }
   </div>
 
   <div class="btn-row">
-    <button class="btn btn-secondary" onclick="goToStep(1)">← Zurück</button>
-    <button class="btn btn-primary" id="btn-to-mapping" style="flex:1" onclick="goToMapping()" disabled>→ WEITER: SPALTEN PRÜFEN</button>
+    <button type="button" class="btn btn-secondary" onclick="goToStep(1)">← Zurück</button>
+    <button type="button" class="btn btn-primary" id="btn-to-mapping" style="flex:1" onclick="goToMapping()" disabled>→ WEITER: SPALTEN PRÜFEN</button>
   </div>
 </div>
 
@@ -353,8 +355,8 @@ tr:last-child td { border-bottom: none; }
   </div>
 
   <div class="btn-row">
-    <button class="btn btn-secondary" onclick="goToStep(2)">← Zurück</button>
-    <button class="btn btn-primary" id="btn-confirm" style="flex:1" onclick="goToContextCheck()" disabled>→ WEITER: KONTEXT-CHECK</button>
+    <button type="button" class="btn btn-secondary" onclick="goToStep(2)">← Zurück</button>
+    <button type="button" class="btn btn-primary" id="btn-confirm" style="flex:1" onclick="goToContextCheck()" disabled>→ WEITER: KONTEXT-CHECK</button>
   </div>
 </div>
 
@@ -381,8 +383,8 @@ tr:last-child td { border-bottom: none; }
     </div>
   </div>
   <div class="btn-row">
-    <button class="btn btn-secondary" onclick="goToStep(3)">← Zurück</button>
-    <button class="btn btn-primary" style="flex:1" onclick="runAnalysis()">→ ANALYSE STARTEN</button>
+    <button type="button" class="btn btn-secondary" onclick="goToStep(3)">← Zurück</button>
+    <button type="button" class="btn btn-primary" style="flex:1" onclick="runAnalysis()">→ ANALYSE STARTEN</button>
   </div>
 </div>
 
@@ -396,7 +398,7 @@ tr:last-child td { border-bottom: none; }
   <div id="output">
     <div class="output-header">
       <span class="output-meta" id="output-meta">—</span>
-      <button class="btn-print" onclick="window.print()">DRUCKEN / PDF</button>
+      <button type="button" class="btn-print" onclick="window.print()">DRUCKEN / PDF</button>
     </div>
     <div id="report-content"></div>
     <div class="disclaimer">
@@ -405,7 +407,7 @@ tr:last-child td { border-bottom: none; }
   </div>
 
   <div class="btn-row" style="margin-top:1rem;">
-    <button class="btn btn-secondary" onclick="goToStep(1)">← Neue Analyse</button>
+    <button type="button" class="btn btn-secondary" onclick="goToStep(1)">← Neue Analyse</button>
   </div>
 </div>
 
@@ -558,7 +560,7 @@ function renderFileList() {
     <div class="file-item">
       <span class="file-name">${sanitize(f.name)}</span>
       <span class="file-rows">${f.rows.length} Zeilen · ${f.headers.length} Spalten · Trenner: "${sanitize(f.sep)}"</span>
-      <button class="file-remove" onclick="removeFile(${i})">✕</button>
+      <button type="button" class="file-remove" onclick="removeFile(${i})">✕</button>
     </div>
   `).join('');
 }
@@ -705,7 +707,7 @@ function renderContextFields(suggestions) {
             oninput="state.contextValues[${i}] = this.value"
             style="width:100%;background:var(--bg);border:1px solid var(--border-bright);color:var(--text);padding:8px 12px;border-radius:3px;font-family:var(--mono);font-size:12px;outline:none;transition:border-color 0.15s,color 0.15s;">
         </div>
-        <button id="ctx-btn-${i}" onclick="toggleContext(${i})" title="Aus Kontext entfernen"
+        <button type="button" id="ctx-btn-${i}" onclick="toggleContext(${i})" title="Aus Kontext entfernen"
           style="flex-shrink:0;width:28px;height:28px;border-radius:50%;border:1px solid var(--red);background:transparent;color:var(--red);cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;transition:all 0.15s;">✕</button>
       </div>
     `;
